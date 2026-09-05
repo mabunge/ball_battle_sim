@@ -18,19 +18,21 @@ h1{margin:0;font-size:clamp(24px,4vw,38px);letter-spacing:-.055em}.subtitle{font
 button,select{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:10px 12px;font-weight:800}
 button{cursor:pointer}button.primary{background:#f4f6fb;color:#0c1118;border-color:#f4f6fb}.controls{display:flex;gap:8px;flex-wrap:wrap}
 .game-grid{display:grid;grid-template-columns:minmax(0,1fr) 326px;gap:12px}
-.arena-wrap{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0b1018}
+.arena-wrap{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0b1018;padding-top:124px}
 canvas{display:block;width:100%;height:670px}
 .overlay-title,.speed-meter,.arena-badge,.event-badge{position:absolute;z-index:6;font-size:10px;padding:6px 9px;border:1px solid rgba(255,255,255,.12);background:rgba(8,11,17,.74);backdrop-filter:blur(6px);border-radius:999px;color:#dce2ec}
-.overlay-title{top:10px;left:50%;transform:translateX(-50%)}
-.arena-badge{top:10px;left:10px}.event-badge{top:10px;right:10px}.speed-meter{bottom:10px;left:50%;transform:translateX(-50%)}
-.hud{position:absolute;left:12px;right:12px;top:46px;z-index:5;display:grid;grid-template-columns:1fr 1fr;gap:12px;pointer-events:none}
+.overlay-title{top:101px;left:50%;transform:translateX(-50%)}
+.arena-badge{top:101px;left:10px}.event-badge{top:101px;right:10px}.speed-meter{top:101px;bottom:auto;left:50%;transform:translateX(-50%);margin-top:0}
+.hud{position:absolute;left:12px;right:12px;top:10px;z-index:12;display:grid;grid-template-columns:1fr 1fr;gap:12px;pointer-events:none}
 .player-hud{padding:10px;background:rgba(7,10,15,.7);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:12px}
 .player-hud.p2{text-align:right}.hud-name{font-size:12px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hpbar,.cdbar,.clutchbar{height:8px;background:#242c39;border-radius:999px;overflow:hidden;margin-top:6px}
-.hpbar i,.cdbar i,.clutchbar i{display:block;height:100%;width:100%;transition:width .08s linear}
+.hpbar i,.cdbar i,.clutchbar i{display:block;height:100%;width:100%;transform:scaleX(1);transform-origin:left center;transition:transform .06s linear;will-change:transform}
 .player-hud:first-child .hpbar i{background:linear-gradient(90deg,#5f96ff,#d6e5ff)}
 .player-hud.p2 .hpbar i{background:linear-gradient(90deg,#ffe0dc,#ff7069)}
+.player-hud.p2 .hpbar i,.player-hud.p2 .cdbar i,.player-hud.p2 .clutchbar i{transform-origin:right center}
 .clutchbar i{background:linear-gradient(90deg,#7067ff,#ffda6a)}
+.cdbar i{background:linear-gradient(90deg,#7f8da4,#f5f7fb)}
 .cdrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.cd{font-size:10px;color:#aeb8c8}.cd strong{display:flex;justify-content:space-between;color:#eef2f8;margin-bottom:3px}
 .clutch-label{font-size:9px;color:#aeb8c8;margin-top:6px;display:flex;justify-content:space-between}
 .side{border:1px solid var(--line);border-radius:16px;background:rgba(16,21,31,.92);padding:12px;min-height:670px}
@@ -54,14 +56,54 @@ canvas{display:block;width:100%;height:670px}
 .cutin-inner{text-align:center;transform:skewX(-7deg);text-shadow:0 0 24px currentColor}.cutin-owner{font-size:12px;font-weight:950;letter-spacing:.28em}.cutin-name{font-size:clamp(38px,8vw,80px);font-weight:1000;letter-spacing:-.08em;line-height:.95}.cutin-sub{font-size:12px;font-weight:900;margin-top:8px}
 @keyframes cutin{0%{opacity:0;transform:scale(.84)}12%{opacity:1;transform:scale(1.03)}72%{opacity:1}100%{opacity:0;transform:scale(1.08)}}
 @media(max-width:940px){.game-grid{grid-template-columns:1fr}.side{min-height:unset}canvas{height:560px}}
-@media(max-width:620px){body{padding:8px}.pick-grid{grid-template-columns:1fr}.hud{top:70px}.player-hud{padding:8px}.hud-name{font-size:10px}.cd{font-size:9px}.controls>*{flex:1}.overlay-title{display:none}}
+@media(max-width:620px){body{padding:8px}.pick-grid{grid-template-columns:1fr}.arena-wrap{padding-top:132px}.hud{top:8px}.player-hud{padding:8px}.hud-name{font-size:10px}.cd{font-size:9px}.controls>*{flex:1}.overlay-title{display:none}}
+
+.mobile-controls{
+  position:absolute;inset:0;z-index:18;pointer-events:none;display:none;
+}
+.mobile-controls.show{display:block}
+.mobile-pad{
+  position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;gap:12px;pointer-events:auto;
+}
+.mobile-pad.top{top:150px}
+.mobile-pad.bottom{bottom:48px}
+.mobile-action{
+  width:74px;height:74px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.72);
+  background:rgba(10,14,22,.72);backdrop-filter:blur(8px);
+  color:#fff;font-size:24px;font-weight:1000;
+  box-shadow:0 0 22px rgba(255,255,255,.12);
+  touch-action:manipulation;user-select:none;
+}
+.mobile-action:active{transform:scale(.94);background:rgba(255,255,255,.18)}
+.mobile-action.skill{outline:2px solid rgba(117,180,255,.25)}
+.mobile-action.ult{outline:2px solid rgba(255,215,106,.35)}
+.mobile-hint{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-size:9px;color:#d8dfeb;background:rgba(7,10,15,.64);
+  border:1px solid rgba(255,255,255,.08);padding:4px 7px;border-radius:999px;
+}
+.mobile-hint.top{top:132px}.mobile-hint.bottom{bottom:128px}
+.sim-badge{
+  position:absolute;left:10px;bottom:10px;z-index:7;
+  font-size:10px;padding:6px 9px;border-radius:999px;
+  background:rgba(8,11,17,.74);border:1px solid rgba(255,255,255,.12);
+  color:#dce2ec;display:none;
+}
+.sim-badge.show{display:block}
+@media(max-width:720px){
+  .mobile-pad.top{top:156px}
+  .mobile-action{width:68px;height:68px;font-size:22px}
+}
+
 </style>
 </head>
 <body>
 <div class="modal" id="setupModal">
   <div class="setup">
     <h2>만마보이즈 배틀 — CLUTCH UPDATE</h2>
-    <div class="hint">직선운동과 벽 반사는 그대로. 이번 버전부터 벽 기믹, 클러치 각성, 랜덤 이벤트, 퍼펙트 스킬, 궁극기 충돌이 추가됩니다.</div>
+    <div class="hint">직선운동과 벽 반사는 그대로. 모바일 모드와 AI 시뮬레이션까지 지원합니다.</div>
     <div class="pick-grid">
       <div class="pick-panel">
         <h3>1P</h3><select id="p1Select" style="width:100%"></select><div class="char-desc" id="p1Desc"></div>
@@ -81,22 +123,22 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 0.7.1 — TELEPORT PREVIEW</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 0.8.3 — AI ULT FIX</div></div>
   <div class="controls">
-    <button id="soundToggle">🔊 사운드 ON</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
+    <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
 </header>
 
 <div class="game-grid">
   <div class="arena-wrap" id="arenaWrap">
     <div class="arena-badge" id="arenaBadge">중립 경기장</div>
-    <div class="overlay-title">벽 기믹 · BOUNCE COMBO · HEAD-ON · NEAR MISS · PERFECT</div>
+    <div class="overlay-title" style="display:none">벽 기믹 · BOUNCE COMBO · HEAD-ON · NEAR MISS · PERFECT</div>
     <div class="event-badge" id="eventBadge">다음 이벤트 30s</div>
     <div class="speed-meter" id="speedMeter">가속 ×1.00 · 0.0초</div>
 
     <div class="hud">
       <div class="player-hud">
-        <div class="hud-name" id="p1Name">1P</div><div class="hpbar"><i id="p1Hp"></i></div>
+        <div class="hud-name"><span id="p1Name">1P</span><span id="p1HpText" style="float:right;color:#aeb8c8;font-size:10px">0 / 0</span></div><div class="hpbar"><i id="p1Hp"></i></div>
         <div class="clutch-label"><span>CLUTCH</span><span id="p1ClutchText">0%</span></div><div class="clutchbar"><i id="p1Clutch"></i></div>
         <div class="cdrow">
           <div class="cd"><strong><span>Q 스킬</span><span id="p1SkillText">READY</span></strong><div class="cdbar"><i id="p1SkillBar"></i></div></div>
@@ -104,7 +146,7 @@ canvas{display:block;width:100%;height:670px}
         </div>
       </div>
       <div class="player-hud p2">
-        <div class="hud-name" id="p2Name">2P</div><div class="hpbar"><i id="p2Hp"></i></div>
+        <div class="hud-name"><span id="p2HpText" style="float:left;color:#aeb8c8;font-size:10px">0 / 0</span><span id="p2Name">2P</span></div><div class="hpbar"><i id="p2Hp"></i></div>
         <div class="clutch-label"><span>CLUTCH</span><span id="p2ClutchText">0%</span></div><div class="clutchbar"><i id="p2Clutch"></i></div>
         <div class="cdrow">
           <div class="cd"><strong><span>O 스킬</span><span id="p2SkillText">READY</span></strong><div class="cdbar"><i id="p2SkillBar"></i></div></div>
@@ -114,6 +156,21 @@ canvas{display:block;width:100%;height:670px}
     </div>
 
     <div class="cutin" id="cutin"><div class="cutin-inner"><div class="cutin-owner" id="cutinOwner"></div><div class="cutin-name" id="cutinName"></div><div class="cutin-sub" id="cutinSub"></div></div></div>
+
+    <div class="sim-badge" id="simBadge">🤖 AI VS AI</div>
+    <div class="mobile-controls" id="mobileControls">
+      <div class="mobile-hint top">1P TOUCH</div>
+      <div class="mobile-pad top">
+        <button class="mobile-action skill" id="mP1Skill" aria-label="1P Skill">Q</button>
+        <button class="mobile-action ult" id="mP1Ult" aria-label="1P Ultimate">E</button>
+      </div>
+      <div class="mobile-hint bottom">2P TOUCH</div>
+      <div class="mobile-pad bottom">
+        <button class="mobile-action skill" id="mP2Skill" aria-label="2P Skill">O</button>
+        <button class="mobile-action ult" id="mP2Ult" aria-label="2P Ultimate">P</button>
+      </div>
+    </div>
+
     <canvas id="game"></canvas>
 
     <div class="winner" id="winner"><div class="win-card"><div class="win-small">WINNER</div><div class="win-name" id="winnerName"></div><div class="win-quote" id="winnerQuote"></div><div class="win-extra" id="winnerExtra"></div><button class="primary" style="margin-top:16px" id="rematch">재대결</button></div></div>
@@ -124,7 +181,7 @@ canvas{display:block;width:100%;height:670px}
     <div class="info-card"><div class="n" id="p1SideName"></div><div id="p1SideInfo"></div><div class="status-row" id="p1Status"></div></div>
     <div class="info-card"><div class="n" id="p2SideName"></div><div id="p2SideInfo"></div><div class="status-row" id="p2Status"></div></div>
     <div class="section" style="margin-top:12px">전투 로그</div><div class="log" id="log"></div>
-    <div class="help"><span class="pill">1P Q / W</span><span class="pill">2P O / P</span><span class="pill">Space 시작/정지</span><span class="pill">궁극기 동시 입력 → CLASH</span></div>
+    <div class="help"><span class="pill">PC 1P Q / W</span><span class="pill">모바일 1P Q / E</span><span class="pill">2P O / P</span><span class="pill">Space 시작/정지</span><span class="pill">궁극기 동시 입력 → CLASH</span></div>
   </aside>
 </div>
 </div>
@@ -189,6 +246,7 @@ let p1,p2,running=false,last=performance.now(),gameTime=0,collisionCd=0;
 let particles=[],rings=[],texts=[],projectiles=[],ultFx=[],ghostHands=[],pizzas=[],trails=[];
 let shake=0,flash=0,nearMissLatch=false,currentEvent=null,nextEventAt=30,arena='neutral',walls={};
 let pendingUlt=null,ambientTimer=0,lastWinnerMeta='',soundOn=true,audioCtx=null,motAudio=null,isaacAudio=null;
+let mobileMode=false,simulationMode=false,aiThinkP1=0,aiThinkP2=0;
 
 function fillSelect(sel){sel.innerHTML=chars.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
 fillSelect($('p1Select'));fillSelect($('p2Select'));$('p2Select').selectedIndex=1;
@@ -242,13 +300,13 @@ function makePlayer(c,slot){
   skillLeft:0,ultLeft:c.ultCd,shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,
   attackDebuff:0,attackDebuffTime:0,hitFlash:0,counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
   clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
-  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0
+  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0
  }
 }
 function resetBattle(){
  stopVoices();chooseArena();rollWalls();gameTime=0;collisionCd=0;currentEvent=null;nextEventAt=30;pendingUlt=null;ambientTimer=0;
  particles=[];rings=[];texts=[];projectiles=[];ultFx=[];ghostHands=[];pizzas=[];trails=[];shake=0;flash=0;nearMissLatch=false;lastWinnerMeta='';
- p1=makePlayer(C($('p1Select').value),1);p2=makePlayer(C($('p2Select').value),2);running=false;
+ p1=makePlayer(C($('p1Select').value),1);p2=makePlayer(C($('p2Select').value),2);running=false;aiThinkP1=rand(.2,.5);aiThinkP2=rand(.2,.5);
  $('winner').classList.remove('show');$('start').textContent='전투 시작';$('log').innerHTML='<div>대결 준비 완료. 궁극기는 충전 중.</div>';
  updateSide();updateHud();
 }
@@ -338,7 +396,7 @@ function useSkill(p){
 }
 function requestUlt(p){
  if(!running||!p.alive||p.ultLeft>0||abilityBlocked(p))return;
- p.ultLeft=p.ultCd;if(p.id==='isaac')log(`◈ <b>${shownName(p)}</b> 순간이동 좌표 고정 — 화면의 TELEPORT 표식으로 이동`);
+ p.ultLeft=p.ultCd;p.aiUltReadyAge=0;if(p.id==='isaac')log(`◈ <b>${shownName(p)}</b> 순간이동 좌표 고정 — 화면의 TELEPORT 표식으로 이동`);
  if(pendingUlt&&pendingUlt.p!==p&&gameTime-pendingUlt.time<=.5){
   const first=pendingUlt.p;pendingUlt=null;startClash(first,p);return
  }
@@ -429,8 +487,9 @@ function stagedAwaken(p){
  if(stage>p.awakenStage){p.awakenStage=stage;cutin('각성 황성배',`${stage}단계 각성`,stage===3?'한계 돌파':'폭주 상승','#ff8b5d');beep('event')}
 }
 function tickPlayer(p,dt){
- if(!p.alive)return;p.skillLeft=Math.max(0,p.skillLeft-dt);
+ if(p.alive===false)return;p.skillLeft=Math.max(0,p.skillLeft-dt);
  const ultRate=currentEvent&&currentEvent.id==='ultimate'?2:1;p.ultLeft=Math.max(0,p.ultLeft-dt*ultRate);
+ if(p.ultLeft<=0)p.aiUltReadyAge=(p.aiUltReadyAge||0)+dt;else p.aiUltReadyAge=0;
  p.hitFlash=Math.max(0,p.hitFlash-dt);p.skillLockedFlash=Math.max(0,p.skillLockedFlash-dt);
  if(p.defTime>0){p.defTime-=dt;if(p.defTime<=0)p.defReduce=0}
  if(p.attackDebuffTime>0){p.attackDebuffTime-=dt;if(p.attackDebuffTime<=0)p.attackDebuff=0}
@@ -504,10 +563,80 @@ function tickEvent(dt){
 function ambient(dt){
  if(arena==='neutral'||!soundOn||!running)return;ambientTimer-=dt;if(ambientTimer<=0){ambientTimer=2.4;beep(arena==='ansan'?'skill':'near')}
 }
+
+function setMobileMode(on){
+ mobileMode=on;
+ $('mobileControls').classList.toggle('show',mobileMode);
+ $('mobileMode').textContent=mobileMode?'📱 모바일 모드 ON':'📱 모바일 모드 OFF';
+}
+function setSimulationMode(on){
+ simulationMode=on;
+ $('simBadge').classList.toggle('show',simulationMode);
+ $('simMode').textContent=simulationMode?'🤖 시뮬레이션 ON':'🤖 시뮬레이션 OFF';
+ if(simulationMode&&!running&&p1&&p2){
+   running=true;$('start').textContent='일시정지';
+ }
+}
+function aiShouldSkill(p){
+ const e=enemy(p),t=predictCollisionTime(p,e),hp=p.hp/p.maxHp,ehp=e.hp/e.maxHp;
+ if(p.skillLeft>0||abilityBlocked(p))return false;
+ switch(p.id){
+  case 'isaac': return t<.35 || hp<.55;
+  case 'gwak': return hp<.62 || t<.35;
+  case 'chang': return hp<.72 || t<.32;
+  case 'yookyung': return ehp<.75 || hp<.75;
+  case 'hyojun': return p.bounceCombo>=2 || Math.random()<.18;
+  case 'jaeyoung': return Math.random()<.32 || t<.5;
+  case 'pre': return hp>.18 && (ehp<.72 || Math.random()<.22);
+  case 'awakened': return t<.45 || hp<.6;
+  case 'taeho': return t<.4 || Math.random()<.22;
+  default:return Math.random()<.2;
+ }
+}
+function aiShouldUlt(p){
+ if(p.ultLeft>0||abilityBlocked(p))return false;
+ const e=enemy(p),hp=p.hp/p.maxHp,ehp=e.hp/e.maxHp,d=Math.hypot(p.x-e.x,p.y-e.y);
+ const age=Number(p.aiUltReadyAge)||0;
+
+ let tactical=false;
+ switch(p.id){
+  case 'taeho': tactical=ehp<.88 || hp<.58;break;
+  case 'awakened': tactical=d<310 || hp<.58;break;
+  case 'jaeyoung': tactical=ehp<.88 || hp<.55;break;
+  case 'isaac': tactical=hp<.65 || ehp<.62;break;
+  case 'yookyung': tactical=hp<.72 || ehp<.62;break;
+  case 'gwak': tactical=hp<.68 || ehp<.55;break;
+  case 'hyojun': tactical=p.bounceCombo>=1 || hp<.62;break;
+  case 'chang': tactical=d<300 || hp<.62;break;
+  case 'pre': tactical=hp<.70 || ehp<.62;break;
+ }
+
+ // Once charged, willingness ramps up every AI think cycle.
+ // At 3 seconds of holding a ready ult, usage is guaranteed.
+ const patienceChance=clamp(.12+age*.24,0,1);
+ if(tactical && Math.random()<.82)return true;
+ if(age>=3.0)return true;
+ return Math.random()<patienceChance;
+}
+function aiTick(dt){
+ if(!simulationMode||!running||!p1||!p2||p1.alive===false||p2.alive===false)return;
+ aiThinkP1-=dt;aiThinkP2-=dt;
+ if(aiThinkP1<=0){
+   aiThinkP1=rand(.16,.42);
+   if(aiShouldUlt(p1)){log(`🤖 1P AI 궁극기 결정 — <b>${p1.ultName}</b>`);requestUlt(p1);}
+   else if(aiShouldSkill(p1))useSkill(p1);
+ }
+ if(aiThinkP2<=0){
+   aiThinkP2=rand(.16,.42);
+   if(aiShouldUlt(p2)){log(`🤖 2P AI 궁극기 결정 — <b>${p2.ultName}</b>`);requestUlt(p2);}
+   else if(aiShouldSkill(p2))useSkill(p2);
+ }
+}
+
 function update(dt){
  gameTime+=dt;collisionCd=Math.max(0,collisionCd-dt);shake=Math.max(0,shake-dt*18);flash=Math.max(0,flash-dt);
- tickEvent(dt);ambient(dt);
- if(pendingUlt){pendingUlt.left-=dt;if(pendingUlt.left<=0){const u=pendingUlt.p;pendingUlt=null;executeUlt(u,1,false)}}
+ tickEvent(dt);ambient(dt);aiTick(dt);
+ if(pendingUlt){pendingUlt.left-=dt;if(pendingUlt.left<=0){const u=pendingUlt.p;pendingUlt=null;if(u&&u.alive!==false){if(simulationMode)log(`🤖 AI 궁극기 발동 — <b>${u.ultName}</b>`);executeUlt(u,1,false)}}}
  tickPlayer(p1,dt);tickPlayer(p2,dt);collide();updateProjectiles(dt);updateGhosts(dt);updatePizza(dt);
  particles.forEach(a=>{a.x+=a.vx*dt;a.y+=a.vy*dt;a.life-=dt;a.vx*=.97;a.vy*=.97});particles=particles.filter(a=>a.life>0);
  rings.forEach(r=>{r.life-=dt;r.r+=(r.maxR-r.r)*Math.min(1,dt*9)});rings=rings.filter(r=>r.life>0);
@@ -625,11 +754,30 @@ function draw(){
  for(const t of texts){ctx.globalAlpha=Math.max(0,t.life);ctx.fillStyle=t.color;ctx.font=t.big?'950 18px system-ui':'900 12px system-ui';ctx.textAlign='center';ctx.fillText(t.s,t.x,t.y)}ctx.globalAlpha=1;
  if(flash>0){ctx.fillStyle=`rgba(255,255,255,${Math.min(.6,flash*1.6)})`;ctx.fillRect(0,0,w,h)}ctx.restore()
 }
-function setCd(prefix,left,max,blocked=false){const ready=left<=0&&!blocked;$(`${prefix}Text`).textContent=blocked?'SILENCE':ready?'READY':left.toFixed(1)+'s';$(`${prefix}Bar`).style.width=(ready?100:Math.max(0,(1-left/max)*100))+'%'}
+function safeRatio(value,max){
+ const v=Number(value),m=Number(max);
+ if(!Number.isFinite(v)||!Number.isFinite(m)||m<=0)return 0;
+ return clamp(v/m,0,1);
+}
+function setGauge(id,ratio){
+ const el=$(id);if(!el)return;
+ const r=Number.isFinite(ratio)?clamp(ratio,0,1):0;
+ el.style.transform=`scaleX(${r})`;
+}
+function setCd(prefix,left,max,blocked=false){
+ const l=Number.isFinite(Number(left))?Math.max(0,Number(left)):0;
+ const m=Number.isFinite(Number(max))&&Number(max)>0?Number(max):1;
+ const ready=l<=0&&!blocked;
+ $(`${prefix}Text`).textContent=blocked?'SILENCE':ready?'READY':l.toFixed(1)+'s';
+ // 0% immediately after use, fills toward 100% as the cooldown completes.
+ setGauge(`${prefix}Bar`,1-clamp(l/m,0,1));
+}
 function updateHud(){
  if(!p1||!p2)return;const sil=currentEvent&&currentEvent.id==='silence';
- $('p1Hp').style.width=clamp(p1.hp/p1.maxHp*100,0,100)+'%';$('p2Hp').style.width=clamp(p2.hp/p2.maxHp*100,0,100)+'%';
- $('p1Clutch').style.width=p1.clutch+'%';$('p2Clutch').style.width=p2.clutch+'%';$('p1ClutchText').textContent=Math.round(p1.clutch)+'%';$('p2ClutchText').textContent=Math.round(p2.clutch)+'%';
+ setGauge('p1Hp',safeRatio(p1.hp,p1.maxHp));setGauge('p2Hp',safeRatio(p2.hp,p2.maxHp));
+ setGauge('p1Clutch',clamp(Number(p1.clutch)||0,0,100)/100);setGauge('p2Clutch',clamp(Number(p2.clutch)||0,0,100)/100);
+ $('p1HpText').textContent=`${Math.ceil(Math.max(0,p1.hp))} / ${p1.maxHp}`;$('p2HpText').textContent=`${Math.ceil(Math.max(0,p2.hp))} / ${p2.maxHp}`;
+ $('p1ClutchText').textContent=Math.round(p1.clutch)+'%';$('p2ClutchText').textContent=Math.round(p2.clutch)+'%';
  $('p1Name').textContent=`1P · ${shownName(p1)}`;$('p2Name').textContent=`2P · ${shownName(p2)}`;
  setCd('p1Skill',p1.skillLeft,p1.skillCd,sil);setCd('p1Ult',p1.ultLeft,p1.ultCd,sil);setCd('p2Skill',p2.skillLeft,p2.skillCd,sil);setCd('p2Ult',p2.ultLeft,p2.ultCd,sil);
  const accel=Math.min(2.15,1+gameTime*.0065);$('speedMeter').textContent=`가속 ×${accel.toFixed(2)} · ${gameTime.toFixed(1)}초`;
@@ -642,6 +790,20 @@ $('reselect').onclick=()=>{running=false;stopVoices();$('setupModal').classList.
 $('reset').onclick=resetBattle;$('rematch').onclick=()=>{resetBattle();running=true;$('start').textContent='일시정지'};
 $('start').onclick=async()=>{if(!p1||!p2)return;await unlockAudio();running=!running;$('start').textContent=running?'일시정지':'계속'};
 $('soundToggle').onclick=async()=>{soundOn=!soundOn;$('soundToggle').textContent=soundOn?'🔊 사운드 ON':'🔇 사운드 OFF';if(soundOn)await unlockAudio();else stopVoices()};
+
+$('mobileMode').onclick=()=>setMobileMode(!mobileMode);
+$('simMode').onclick=()=>setSimulationMode(!simulationMode);
+function bindTouch(id,fn){
+ const el=$(id);
+ const go=e=>{e.preventDefault();unlockAudio();fn()};
+ el.addEventListener('touchstart',go,{passive:false});
+ el.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'){e.preventDefault();unlockAudio();fn()}});
+}
+bindTouch('mP1Skill',()=>useSkill(p1));
+bindTouch('mP1Ult',()=>requestUlt(p1));
+bindTouch('mP2Skill',()=>useSkill(p2));
+bindTouch('mP2Ult',()=>requestUlt(p2));
+
 window.addEventListener('keydown',e=>{if(e.repeat)return;ensureAudio();const k=e.key.toLowerCase();if(k===' '){e.preventDefault();$('start').click();return}if(!running)return;if(k==='q')useSkill(p1);if(k==='w')requestUlt(p1);if(k==='o')useSkill(p2);if(k==='p')requestUlt(p2)});
 function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;if(running&&p1&&p2)update(dt);draw();updateHud();requestAnimationFrame(loop)}
 resize();requestAnimationFrame(loop);
