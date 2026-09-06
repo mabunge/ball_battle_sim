@@ -170,7 +170,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.0.4 — CLUTCH UI FIX</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.1.0 — AWAKENED RUSH</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -299,7 +299,7 @@ const events=[
 let p1,p2,running=false,last=performance.now(),gameTime=0,collisionCd=0;
 let particles=[],rings=[],texts=[],projectiles=[],ultFx=[],ghostHands=[],pizzas=[],trails=[],terrainCircles=[],sniperShots=[];
 let shake=0,flash=0,nearMissLatch=false,currentEvent=null,nextEventAt=30,arena='neutral',walls={};
-let pendingUlt=null,ambientTimer=0,lastWinnerMeta='',soundOn=true,audioCtx=null,motAudio=null,isaacAudio=null;
+let pendingUlt=null,ambientTimer=0,lastWinnerMeta='',soundOn=true,audioCtx=null,motAudio=null,isaacAudio=null,awakenedAudio=null;
 let mobileMode=false,simulationMode=false,aiThinkP1=0,aiThinkP2=0,battleMode='duel',teamSize=1,teamPlayers=[],teamProjectiles=[],teamTerrains=[],teamItems=[];
 
 function fillSelect(sel){sel.innerHTML=chars.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
@@ -347,6 +347,7 @@ function ensureAudio(){
  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
  if(!motAudio){motAudio=new Audio('assets/mot.mp3');motAudio.preload='auto';motAudio.volume=.9}
  if(!isaacAudio){isaacAudio=new Audio('assets/daesak.mp3');isaacAudio.preload='auto';isaacAudio.volume=.95}
+ if(!awakenedAudio){awakenedAudio=new Audio('assets/awakened.mp3');awakenedAudio.preload='auto';awakenedAudio.volume=1}
 }
 async function unlockAudio(){
  if(!soundOn)return false;
@@ -358,7 +359,7 @@ async function unlockAudio(){
      const src=audioCtx.createBufferSource();src.buffer=buf;src.connect(audioCtx.destination);src.start();
      audioUnlocked=true;
    }
-   for(const a of [motAudio,isaacAudio]){
+   for(const a of [motAudio,isaacAudio,awakenedAudio]){
      if(!a)continue;
      try{
        const wasMuted=a.muted;a.muted=true;a.currentTime=0;
@@ -369,13 +370,81 @@ async function unlockAudio(){
  }catch(e){audioUnlocked=false}
  return audioUnlocked;
 }
-function beep(type='hit'){
- if(!soundOn)return;ensureAudio();if(!audioCtx||audioCtx.state!=='running')return;
- const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;
- const cfg={hit:[150,.045,.07],wall:[240,.03,.045],skill:[430,.08,.055],ult:[95,.18,.09],heal:[620,.09,.05],near:[760,.05,.035],event:[310,.2,.045],clash:[70,.35,.12],perfect:[900,.11,.06],pizza:[520,.07,.04]}[type]||[200,.05,.04];
- o.type=type==='clash'?'sawtooth':'sine';o.frequency.setValueAtTime(cfg[0],t);if(type==='hit')o.frequency.exponentialRampToValueAtTime(90,t+cfg[1]);
- g.gain.setValueAtTime(cfg[2],t);g.gain.exponentialRampToValueAtTime(.0001,t+cfg[1]);o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+cfg[1]+.02)
+function runWebAudio(play){
+ if(!soundOn)return;
+ ensureAudio();
+ if(!audioCtx)return;
+ const fire=()=>{try{if(audioCtx&&audioCtx.state==='running')play()}catch(err){console.warn('WebAudio playback error',err)}};
+ if(audioCtx.state==='running')fire();
+ else audioCtx.resume().then(fire).catch(()=>{});
 }
+function beep(type='hit'){
+ runWebAudio(()=>{
+   const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;
+   const cfg={hit:[150,.045,.07],wall:[240,.03,.045],skill:[430,.08,.055],ult:[95,.18,.09],heal:[620,.09,.05],near:[760,.05,.035],event:[310,.2,.045],clash:[70,.35,.12],perfect:[900,.11,.06],pizza:[520,.07,.04]}[type]||[200,.05,.04];
+   o.type=type==='clash'?'sawtooth':'sine';
+   o.frequency.setValueAtTime(cfg[0],t);
+   if(type==='hit')o.frequency.exponentialRampToValueAtTime(90,t+cfg[1]);
+   g.gain.setValueAtTime(cfg[2],t);
+   g.gain.exponentialRampToValueAtTime(.0001,t+cfg[1]);
+   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+cfg[1]+.02);
+ });
+}
+
+function playUltimateSfx(id){
+ runWebAudio(()=>{
+   const now=audioCtx.currentTime;
+   const tones={
+     taeho:[72,42,'sawtooth'],
+     awakened:[118,510,'sawtooth'],
+     jaeyoung:[430,920,'triangle'],
+     isaac:[260,54,'sawtooth'],
+     yookyung:[520,780,'triangle'],
+     gwak:[64,38,'square'],
+     hyojun:[240,630,'sine'],
+     chang:[185,390,'triangle'],
+     youngwoong:[980,220,'square']
+   };
+   const cfg=tones[id]||[110,55,'sawtooth'];
+
+   const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+   osc.type=cfg[2];
+   osc.frequency.setValueAtTime(Math.max(20,cfg[0]),now);
+   osc.frequency.exponentialRampToValueAtTime(Math.max(20,cfg[1]),now+.32);
+   gain.gain.setValueAtTime(.0001,now);
+   gain.gain.linearRampToValueAtTime(.16,now+.018);
+   gain.gain.exponentialRampToValueAtTime(.0001,now+.42);
+   osc.connect(gain).connect(audioCtx.destination);
+   osc.start(now);osc.stop(now+.44);
+
+   const low=audioCtx.createOscillator(),lowGain=audioCtx.createGain();
+   low.type='sine';
+   low.frequency.setValueAtTime(id==='awakened'?125:82,now);
+   low.frequency.exponentialRampToValueAtTime(38,now+.28);
+   lowGain.gain.setValueAtTime(.22,now);
+   lowGain.gain.exponentialRampToValueAtTime(.0001,now+.34);
+   low.connect(lowGain).connect(audioCtx.destination);
+   low.start(now);low.stop(now+.36);
+
+   const len=Math.floor(audioCtx.sampleRate*.20);
+   const buffer=audioCtx.createBuffer(1,len,audioCtx.sampleRate);
+   const data=buffer.getChannelData(0);
+   for(let i=0;i<len;i++){
+     const env=Math.pow(1-i/len,2.6);
+     data[i]=(Math.random()*2-1)*env;
+   }
+   const noise=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),noiseGain=audioCtx.createGain();
+   noise.buffer=buffer;
+   filter.type=id==='awakened'?'bandpass':'lowpass';
+   filter.frequency.value=id==='awakened'?950:1250;
+   filter.Q.value=.8;
+   noiseGain.gain.setValueAtTime(.13,now);
+   noiseGain.gain.exponentialRampToValueAtTime(.0001,now+.20);
+   noise.connect(filter).connect(noiseGain).connect(audioCtx.destination);
+   noise.start(now);
+ });
+}
+
 
 function sniperGunshot(){
  try{
@@ -436,11 +505,22 @@ function sniperGunshot(){
  }catch(err){console.warn('sniperGunshot error',err)}
 }
 function playVoice(kind){
- if(!soundOn)return;ensureAudio();
- const a=kind==='mot'?motAudio:isaacAudio;if(!a)return;
- try{a.pause();a.currentTime=kind==='mot'?9:0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}
+ if(!soundOn)return;
+ ensureAudio();
+ const map={mot:motAudio,isaac:isaacAudio,awakened:awakenedAudio};
+ const a=map[kind];if(!a)return;
+ const start=kind==='mot'?9:0;
+ const play=()=>{
+   try{
+     a.pause();a.currentTime=start;
+     const promise=a.play();
+     if(promise&&promise.catch)promise.catch(()=>{});
+   }catch(err){console.warn('Voice playback error',err)}
+ };
+ if(audioCtx&&audioCtx.state!=='running')audioCtx.resume().then(play).catch(play);
+ else play();
 }
-function stopVoices(){[motAudio,isaacAudio].forEach(a=>{if(a){a.pause();a.currentTime=0}})}
+function stopVoices(){[motAudio,isaacAudio,awakenedAudio].forEach(a=>{if(a){a.pause();a.currentTime=0}})}
 ['pointerdown','touchstart','keydown'].forEach(evt=>{
  document.addEventListener(evt,()=>{if(soundOn)unlockAudio()},{capture:true,passive:true});
 });
@@ -460,7 +540,7 @@ function makePlayer(c,slot){
   skillLeft:0,ultLeft:c.ultCd,shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,
   attackDebuff:0,attackDebuffTime:0,hitFlash:0,counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
   clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
-  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,gwakChargeTime:0,gwakChargeHitReady:false
+  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false
  }
 }
 function resetBattle(){
@@ -476,7 +556,7 @@ function updateSide(){
  $('p1SideInfo').innerHTML=skillHtml(p1,'Q');$('p2SideInfo').innerHTML=skillHtml(p2,'O');
 }
 function statusTags(p){
- const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='youngwoong')a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
+ const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='awakened'&&p.awakenRushWindup>0)a.push('RUSH CHARGE');if(p.id==='awakened'&&p.awakenRushTime>0)a.push('LIMIT RUSH');if(p.id==='youngwoong')a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
  if(p.awakenStage>0)a.push(`각성 ${p.awakenStage}단계`);if(p.buffTime>0)a.push('BUFF');if(p.defTime>0)a.push('DEF');
  return a.map(x=>`<span class="status-tag">${x}</span>`).join('')
 }
@@ -571,10 +651,10 @@ function startClash(a,b){
  setTimeout(()=>{},0);damage(loser,22,winner,'궁극기 충돌 패배');if(loser.alive)executeUlt(winner,.68,true)
 }
 function executeUlt(p,scale=1,fromClash=false){
- if(!p.alive)return;const e=enemy(p);beep('ult');flash=.22;shake=12;
+ if(!p.alive)return;const e=enemy(p);playUltimateSfx(p.id);flash=.22;shake=12;
  ultFx.push({type:p.id,p,x:p.x,y:p.y,life:1.25,maxLife:1.25,t:0});ring(p.x,p.y,235,.6,7,'#fff');burst(p.x,p.y,38,'#fff',1.4);
  cutin(`${p.slot}P · ${shownName(p)}`,p.ultName,fromClash?'CLASH WINNER':'ULTIMATE','#fff');log(`★★ <b>${shownName(p)}</b> — ${p.ultName}`);
- if(p.id==='taeho')playVoice('mot');if(p.id==='isaac')playVoice('isaac');
+ if(p.id==='taeho')playVoice('mot');if(p.id==='isaac')playVoice('isaac');if(p.id==='awakened')playVoice('awakened');if(p.id==='awakened')playVoice('awakened');
  switch(p.id){
   case 'taeho':{
    damage(e,52*scale,p,'M.O.T 궁극기');
@@ -593,9 +673,25 @@ function executeUlt(p,scale=1,fromClash=false){
     }
    }break
   }
-  case 'awakened':
-   if(Math.hypot(p.x-e.x,p.y-e.y)<=240)damage(e,58*scale,p,'완전각성 궁극기');
-   p.buffAtk=10*scale;p.buffSpeed=.22*scale;p.buffTime=Math.max(p.buffTime,5);p.awakenStage=Math.max(p.awakenStage,3);break;
+  case 'awakened':{
+   const limitRush=p.hp/p.maxHp<=.20;
+   p.buffAtk=(limitRush?13:10)*scale;
+   p.buffSpeed=(limitRush?.28:.22)*scale;
+   p.buffTime=Math.max(p.buffTime,limitRush?7:5);
+   p.awakenStage=Math.max(p.awakenStage,3);
+   if(limitRush){
+     p.awakenRushWindup=.62;
+     p.awakenRushTime=0;
+     p.awakenRushHitReady=true;
+     p.vx=0;p.vy=0;
+     cutin('각성 황성배','한계 돌파','0.6초 후 상대를 향해 돌진','#ff6b42');
+     txt(p.x,p.y-54,'RUSH CHARGE',true,'#ffb074');
+     log(`🔥 <b>${shownName(p)}</b> 체력 20% 이하 — 한계 돌진 준비`);
+   }else if(Math.hypot(p.x-e.x,p.y-e.y)<=240){
+     damage(e,58*scale,p,'완전각성 궁극기');
+   }
+   break;
+  }
   case 'jaeyoung':
    for(let i=0;i<12;i++)fireProjectile(p,TAU*i/12,440,8*scale,'hand',8,2.2);
    p.defReduce=.25;p.defTime=Math.max(p.defTime,3);break;
@@ -666,6 +762,7 @@ function tickPlayer(p,dt){
  if(p.wallPulse>0&&p.wallPulse<900)p.wallPulse=Math.max(0,p.wallPulse-dt);
  if(p.postUltTimer>0){p.postUltTimer-=dt;if(p.postUltTimer<=0&&p.postUltDamage>0){const d=p.postUltDamage;p.postUltDamage=0;damage(p,d,p,'각성 반동')}}
  stagedAwaken(p);
+ if(updateAwakenedRush(p,dt))return;
  let accel=Math.min(2.15,1+gameTime*.0065),eventSpeed=currentEvent&&currentEvent.id==='overspeed'?1.2:1;
  let stageSpeed=p.id==='awakened'&&!p.titleBroken?1+p.awakenStage*.06:1;
  let isaacLow=p.id==='isaac'&&p.hp/p.maxHp<.25?1.08:1;
@@ -678,6 +775,12 @@ function collide(){
  if(d<min){
   const nx=dx/d,ny=dy/d,ov=min-d;p1.x-=nx*ov/2;p1.y-=ny*ov/2;p2.x+=nx*ov/2;p2.y+=ny*ov/2;
   const a1=p1.vx*nx+p1.vy*ny,a2=p2.vx*nx+p2.vy*ny;p1.vx+=(a2-a1)*nx;p1.vy+=(a2-a1)*ny;p2.vx+=(a1-a2)*nx;p2.vy+=(a1-a2)*ny;
+  if(p1.id==='awakened'&&p1.awakenRushTime>0&&p1.awakenRushHitReady&&p2.alive){
+    damage(p2,46,p1,'한계 돌진 궁극기');p1.awakenRushHitReady=false;p1.awakenRushTime=0;ring(p2.x,p2.y,115,.34,6,'#ff7048');burst(p2.x,p2.y,30,'#ff7048',1.35);shake=18;
+  }
+  if(p2.id==='awakened'&&p2.awakenRushTime>0&&p2.awakenRushHitReady&&p1.alive){
+    damage(p1,46,p2,'한계 돌진 궁극기');p2.awakenRushHitReady=false;p2.awakenRushTime=0;ring(p1.x,p1.y,115,.34,6,'#ff7048');burst(p1.x,p1.y,30,'#ff7048',1.35);shake=18;
+  }
   if(collisionCd<=0){
    const v1=Math.hypot(p1.vx,p1.vy),v2=Math.hypot(p2.vx,p2.vy),dot=(p1.vx*p2.vx+p1.vy*p2.vy)/(v1*v2||1),headOn=dot<-.72;
    let eventMul=currentEvent&&currentEvent.id==='lawless'?1.35:1;
@@ -706,6 +809,77 @@ function collide(){
  }
 }
 
+
+
+function updateAwakenedRush(p,dt){
+ if(!p||p.alive===false||p.id!=='awakened')return false;
+ if(p.awakenRushWindup>0){
+   p.awakenRushWindup=Math.max(0,p.awakenRushWindup-dt);
+   p.vx=0;p.vy=0;
+   if(p.awakenRushWindup<=0){
+     const e=enemy(p);
+     [p.vx,p.vy]=norm(e.x-p.x,e.y-p.y,790);
+     p.awakenRushTime=1.15;
+     ring(p.x,p.y,125,.26,5,'#ff7048');
+     burst(p.x,p.y,28,'#ff8a54',1.25);
+     txt(p.x,p.y-52,'LIMIT RUSH!',true,'#fff0b0');
+     shake=15;flash=.10;
+   }
+   return true;
+ }
+ if(p.awakenRushTime>0){
+   p.awakenRushTime=Math.max(0,p.awakenRushTime-dt);
+   [p.vx,p.vy]=norm(p.vx,p.vy,790);
+   p.x+=p.vx*dt;p.y+=p.vy*dt;bounds(p);
+   trails.push({x:p.x,y:p.y,r:p.r*1.18,life:.22,color:'#ff6d45'});
+   if(p.awakenRushTime<=0)p.awakenRushHitReady=false;
+   return true;
+ }
+ return false;
+}
+function updateTeamAwakenedRush(p,dt){
+ if(!p||!p.alive||p.id!=='awakened')return false;
+ if(p.awakenRushWindup>0){
+   p.awakenRushWindup=Math.max(0,p.awakenRushWindup-dt);
+   p.vx=0;p.vy=0;
+   if(p.awakenRushWindup<=0){
+     const t=teamTarget(p);
+     if(t){
+       [p.vx,p.vy]=norm(t.x-p.x,t.y-p.y,745);
+       p.awakenRushTime=1.15;
+       ring(p.x,p.y,110,.24,5,'#ff7048');
+       burst(p.x,p.y,24,'#ff8a54',1.15);
+       txt(p.x,p.y-46,'LIMIT RUSH!',true,'#fff0b0');
+     }else{
+       p.awakenRushHitReady=false;
+     }
+   }
+   return true;
+ }
+ if(p.awakenRushTime>0){
+   p.awakenRushTime=Math.max(0,p.awakenRushTime-dt);
+   [p.vx,p.vy]=norm(p.vx,p.vy,745);
+   p.x+=p.vx*dt;p.y+=p.vy*dt;teamBounds(p);
+   trails.push({x:p.x,y:p.y,r:p.r*1.12,life:.20,color:p.team==='A'?'#ff825e':'#ff5c48'});
+   if(p.awakenRushTime<=0)p.awakenRushHitReady=false;
+   return true;
+ }
+ return false;
+}
+function drawAwakenedRush(p){
+ if(!p||p.alive===false||p.id!=='awakened'||(p.awakenRushWindup<=0&&p.awakenRushTime<=0))return;
+ ctx.save();
+ if(p.awakenRushWindup>0){
+   const pulse=8+Math.sin(performance.now()/45)*5;
+   ctx.strokeStyle='#ffb06c';ctx.lineWidth=4;ctx.shadowBlur=22;ctx.shadowColor='#ff5b36';
+   ctx.beginPath();ctx.arc(p.x,p.y,p.r+18+pulse,0,TAU);ctx.stroke();
+   ctx.beginPath();ctx.arc(p.x,p.y,p.r+35-pulse*.4,0,TAU);ctx.stroke();
+ }else{
+   ctx.strokeStyle='#fff0b0';ctx.lineWidth=3;ctx.shadowBlur=20;ctx.shadowColor='#ff4c2e';
+   ctx.beginPath();ctx.arc(p.x,p.y,p.r+16,0,TAU);ctx.stroke();
+ }
+ ctx.restore();
+}
 
 function updateGwakCharge(p,dt){
  if(!p||p.alive===false||p.id!=='gwak'||p.gwakChargeTime<=0)return;
@@ -840,7 +1014,7 @@ function makeTeamPlayer(c,team,index,n){
    counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
    sizeTime:0,clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,
    scanX:left?W()*.24:W()*.76,scanY:y*.72+H()*.12,scanVX:left?345:-345,scanVY:(index%2===0?225:-235),scanR:27,scanShotCd:0,scanLatched:false,scopeFlash:0,
-   gwakChargeTime:0,gwakChargeHitReady:false,awakenStage:0,postUltDamage:0,postUltTimer:0
+   gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,awakenStage:0,postUltDamage:0,postUltTimer:0
  };
 }
 function teamEnemies(p){return teamPlayers.filter(x=>x.alive&&x.team!==p.team)}
@@ -904,7 +1078,7 @@ function teamUseSkill(p){
  }
 }
 function teamUseUlt(p){
- if(!p.alive||p.ultLeft>0)return;p.ultLeft=p.ultCd;p.aiUltReadyAge=0;beep('ult');flash=.12;
+ if(!p.alive||p.ultLeft>0)return;p.ultLeft=p.ultCd;p.aiUltReadyAge=0;playUltimateSfx(p.id);flash=.12;
  ultFx.push({type:p.id,p,x:p.x,y:p.y,life:1.1,maxLife:1.1,t:0});
  const target=teamTarget(p);
  if(p.id==='taeho')playVoice('mot');if(p.id==='isaac')playVoice('isaac');
@@ -912,9 +1086,18 @@ function teamUseUlt(p){
    case 'taeho':
      if(target){teamDamage(target,44,p,'M.O.T');target.tempTitle='이명 박탈';target.titleTime=7;target.titleBroken=true;target.attackDebuff=.18;target.attackDebuffTime=7}
      break;
-   case 'awakened':
-     teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<250).forEach(e=>teamDamage(e,48,p,'완전각성'));
-     p.buffAtk=10;p.buffSpeed=.20;p.buffTime=5;p.awakenStage=3;break;
+   case 'awakened':{
+     const limitRush=p.hp/p.maxHp<=.20;
+     p.buffAtk=limitRush?13:10;p.buffSpeed=limitRush?.27:.20;p.buffTime=limitRush?7:5;p.awakenStage=3;
+     if(limitRush){
+       p.awakenRushWindup=.62;p.awakenRushTime=0;p.awakenRushHitReady=true;p.vx=0;p.vy=0;
+       txt(p.x,p.y-46,'RUSH CHARGE',true,'#ffb074');
+       log(`🔥 <b>${p.short}</b> 체력 20% 이하 — 한계 돌진 준비`);
+     }else{
+       teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<250).forEach(e=>teamDamage(e,48,p,'완전각성'));
+     }
+     break;
+   }
    case 'jaeyoung':
      for(let i=0;i<12;i++)teamFire(p,TAU*i/12,420,8,'hand');p.defReduce=.25;p.defTime=3;break;
    case 'isaac':
@@ -976,6 +1159,7 @@ function teamTickPlayer(p,dt){
  if(p.wallPulse>0&&p.wallPulse<900)p.wallPulse=Math.max(0,p.wallPulse-dt);
  if(p.id==='awakened'){const rr=p.hp/p.maxHp;p.awakenStage=rr<=.1?3:rr<=.25?2:rr<=.5?1:0}
  const t=teamTarget(p);
+ if(updateTeamAwakenedRush(p,dt))return;
  if(p.id==='gwak'&&p.gwakChargeTime>0&&t){
    p.gwakChargeTime-=dt;let cur=Math.atan2(p.vy,p.vx),tar=Math.atan2(t.y-p.y,t.x-p.x),diff=tar-cur;
    while(diff>Math.PI)diff-=TAU;while(diff<-Math.PI)diff+=TAU;const step=clamp(diff,-2.4*dt,2.4*dt);cur+=step;
@@ -1022,6 +1206,12 @@ function teamCollisions(){
    const a=alive[i],b=alive[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.001,min=a.r+b.r;
    if(d>=min)continue;const nx=dx/d,ny=dy/d,ov=min-d;a.x-=nx*ov/2;a.y-=ny*ov/2;b.x+=nx*ov/2;b.y+=ny*ov/2;
    const av=a.vx*nx+a.vy*ny,bv=b.vx*nx+b.vy*ny;a.vx+=(bv-av)*nx;a.vy+=(bv-av)*ny;b.vx+=(av-bv)*nx;b.vy+=(av-bv)*ny;
+   if(a.team!==b.team&&a.id==='awakened'&&a.awakenRushTime>0&&a.awakenRushHitReady&&b.alive){
+     teamDamage(b,42,a,'한계 돌진 궁극기');a.awakenRushHitReady=false;a.awakenRushTime=0;ring(b.x,b.y,105,.32,6,'#ff7048');shake=16;
+   }
+   if(a.team!==b.team&&b.id==='awakened'&&b.awakenRushTime>0&&b.awakenRushHitReady&&a.alive){
+     teamDamage(a,42,b,'한계 돌진 궁극기');b.awakenRushHitReady=false;b.awakenRushTime=0;ring(a.x,a.y,105,.32,6,'#ff7048');shake=16;
+   }
    if(a.team!==b.team&&a.hitCd<=0&&b.hitCd<=0){
      let da=a.atk+(a.buffAtk||0)+(a.id==='awakened'?a.awakenStage*2:0),db=b.atk+(b.buffAtk||0)+(b.id==='awakened'?b.awakenStage*2:0);
      if(a.attackDebuffTime>0)da*=1-a.attackDebuff;if(b.attackDebuffTime>0)db*=1-b.attackDebuff;
@@ -1076,7 +1266,7 @@ function drawTeamBattle(){
  for(const s of sniperShots){ctx.save();ctx.globalAlpha=Math.max(0,s.life/s.maxLife);ctx.strokeStyle='#ff3f3f';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(Number.isFinite(s.sx)?s.sx:s.x,Number.isFinite(s.sy)?s.sy:0);ctx.lineTo(s.x,s.y);ctx.stroke();ctx.restore()}
  for(const q of teamProjectiles){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.rot);ctx.fillStyle=q.type==='pizza'?'#ffd65a':'#ffe39a';ctx.beginPath();ctx.arc(0,0,q.r,0,TAU);ctx.fill();ctx.restore()}
  for(const p of teamPlayers){
-   if(!p.alive)continue;ctx.save();ctx.fillStyle=p.team==='A'?'#dce9ff':'#ffe0de';ctx.strokeStyle=p.team==='A'?'#5c8ed6':'#ce6965';ctx.lineWidth=3;
+   if(!p.alive)continue;drawAwakenedRush(p);ctx.save();ctx.fillStyle=p.team==='A'?'#dce9ff':'#ffe0de';ctx.strokeStyle=p.team==='A'?'#5c8ed6':'#ce6965';ctx.lineWidth=3;
    if(p.shield>0){ctx.strokeStyle='#fff';ctx.beginPath();ctx.arc(p.x,p.y,p.r+7,0,TAU);ctx.stroke();ctx.strokeStyle=p.team==='A'?'#5c8ed6':'#ce6965'}
    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle='#090d13';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(teamSymbol(p),p.x,p.y);
    ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(`${p.team}${p.index+1} ${p.short}`,p.x,p.y+p.r+13);
@@ -1352,6 +1542,7 @@ function draw(){
  for(const q of projectiles){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.rot);if(q.type==='pizza'){ctx.fillStyle='#ffd65a';ctx.beginPath();ctx.moveTo(-11,9);ctx.lineTo(14,0);ctx.lineTo(-11,-9);ctx.closePath();ctx.fill()}else{ctx.fillStyle='#ffe39a';ctx.shadowBlur=18;ctx.shadowColor='#ffe39a';ctx.beginPath();ctx.arc(0,0,q.size,0,TAU);ctx.fill()}ctx.restore()}
  drawHunterSystems();
  drawGwakCharge(p1);drawGwakCharge(p2);
+ drawAwakenedRush(p1);drawAwakenedRush(p2);
  drawTeleportPreview(p1);drawTeleportPreview(p2);
  drawPlayer(p1);drawPlayer(p2);
  for(const a of particles){ctx.globalAlpha=Math.max(0,a.life/a.max);ctx.fillStyle=a.color;ctx.beginPath();ctx.arc(a.x,a.y,a.size,0,TAU);ctx.fill()}ctx.globalAlpha=1;
