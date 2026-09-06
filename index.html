@@ -97,13 +97,54 @@ canvas{display:block;width:100%;height:670px}
   .mobile-action{width:68px;height:68px;font-size:22px}
 }
 
+
+.mode-select-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.mode-select-row label{font-size:11px;color:var(--muted);font-weight:900}
+.team-setup{display:none}
+.team-setup.show{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.team-column{border:1px solid var(--line);border-radius:14px;padding:12px;background:#0c1119}
+.team-column h3{margin:0 0 8px;font-size:14px}
+.team-slot{display:grid;grid-template-columns:30px 1fr;gap:7px;align-items:center;margin-top:7px}
+.team-slot span{font-size:10px;font-weight:950;color:#aeb8c8}
+.team-slot select{width:100%;padding:8px}
+.team-hud{position:absolute;left:12px;right:12px;top:10px;z-index:13;display:none;grid-template-columns:1fr 1fr;gap:12px;pointer-events:none}
+.team-hud.show{display:grid}
+.team-hud-card{padding:10px;background:rgba(7,10,15,.74);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:12px}
+.team-hud-card.b{text-align:right}
+.team-hud-title{font-size:12px;font-weight:1000}
+.team-total-bar{height:9px;background:#252c39;border-radius:999px;overflow:hidden;margin-top:7px}
+.team-total-bar i{display:block;width:100%;height:100%;transform:scaleX(1);transition:transform .08s linear}
+.team-hud-card.a .team-total-bar i{background:linear-gradient(90deg,#5e96ff,#d9e7ff);transform-origin:left center}
+.team-hud-card.b .team-total-bar i{background:linear-gradient(90deg,#ffe0dc,#ff716a);transform-origin:right center}
+.team-roster{display:none}
+.team-roster.show{display:block}
+.team-roster-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.team-unit{border:1px solid var(--line);border-radius:10px;padding:7px;background:#0c1119}
+.team-unit.dead{opacity:.35;filter:grayscale(1)}
+.team-unit .u-name{font-size:10px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-unit .u-hp{font-size:9px;color:#9da9ba;margin-top:3px}
+.team-unit .mini{height:5px;background:#27303e;border-radius:999px;overflow:hidden;margin-top:4px}
+.team-unit .mini i{display:block;height:100%;background:#fff}
+.team-only-note{font-size:10px;color:#ffd981;margin-top:8px}
+@media(max-width:620px){.team-setup.show{grid-template-columns:1fr}.team-roster-grid{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body>
 <div class="modal" id="setupModal">
   <div class="setup">
-    <h2>만마보이즈 배틀 — CLUTCH UPDATE</h2>
-    <div class="hint">직선운동과 벽 반사는 그대로. 모바일 모드와 AI 시뮬레이션까지 지원합니다.</div>
+    <h2>만마보이즈 배틀 — TEAM BATTLE</h2>
+    <div class="hint">1v1은 직접 조작/AI 모두 지원하고, 2v2~4v4 팀전은 AI 시뮬레이션 전용입니다.</div>
+    <div class="mode-select-row">
+      <label for="battleModeSelect">전투 모드</label>
+      <select id="battleModeSelect">
+        <option value="1">1 vs 1</option>
+        <option value="2">2 vs 2 · AI ONLY</option>
+        <option value="3">3 vs 3 · AI ONLY</option>
+        <option value="4">4 vs 4 · AI ONLY</option>
+      </select>
+    </div>
+    <div id="duelSetup">
     <div class="pick-grid">
       <div class="pick-panel">
         <h3>1P</h3><select id="p1Select" style="width:100%"></select><div class="char-desc" id="p1Desc"></div>
@@ -114,6 +155,12 @@ canvas{display:block;width:100%;height:670px}
         <div><span class="key">O</span> 일반 스킬 &nbsp; <span class="key">P</span> 궁극기</div>
       </div>
     </div>
+    </div>
+    <div class="team-setup" id="teamSetup">
+      <div class="team-column"><h3>TEAM A</h3><div id="teamASelects"></div></div>
+      <div class="team-column"><h3>TEAM B</h3><div id="teamBSelects"></div></div>
+    </div>
+    <div class="team-only-note" id="teamOnlyNote" style="display:none">팀전은 직접 조작과 모바일 버튼을 지원하지 않습니다. 모든 캐릭터를 AI가 자동 조작합니다.</div>
     <div class="setup-actions">
       <div style="color:#93a0b4;font-size:11px">궁극기는 경기 시작 시 쿨타임부터 충전됩니다. 경기장은 매 판 랜덤.</div>
       <button class="primary" id="confirmSetup">대결 준비</button>
@@ -123,7 +170,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 0.8.3 — AI ULT FIX</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.0.0 — TEAM BATTLE</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -155,6 +202,11 @@ canvas{display:block;width:100%;height:670px}
       </div>
     </div>
 
+    <div class="team-hud" id="teamHud">
+      <div class="team-hud-card a"><div class="team-hud-title"><span id="teamAAlive">TEAM A</span><span id="teamAHpText" style="float:right;color:#aeb8c8;font-size:10px"></span></div><div class="team-total-bar"><i id="teamAHpBar"></i></div></div>
+      <div class="team-hud-card b"><div class="team-hud-title"><span id="teamBHpText" style="float:left;color:#aeb8c8;font-size:10px"></span><span id="teamBAlive">TEAM B</span></div><div class="team-total-bar"><i id="teamBHpBar"></i></div></div>
+    </div>
+
     <div class="cutin" id="cutin"><div class="cutin-inner"><div class="cutin-owner" id="cutinOwner"></div><div class="cutin-name" id="cutinName"></div><div class="cutin-sub" id="cutinSub"></div></div></div>
 
     <div class="sim-badge" id="simBadge">🤖 AI VS AI</div>
@@ -180,6 +232,7 @@ canvas{display:block;width:100%;height:670px}
     <div class="section">캐릭터 능력</div>
     <div class="info-card"><div class="n" id="p1SideName"></div><div id="p1SideInfo"></div><div class="status-row" id="p1Status"></div></div>
     <div class="info-card"><div class="n" id="p2SideName"></div><div id="p2SideInfo"></div><div class="status-row" id="p2Status"></div></div>
+    <div class="team-roster" id="teamRoster"><div class="team-roster-grid" id="teamRosterGrid"></div></div>
     <div class="section" style="margin-top:12px">전투 로그</div><div class="log" id="log"></div>
     <div class="help"><span class="pill">PC 1P Q / W</span><span class="pill">모바일 1P Q / E</span><span class="pill">2P O / P</span><span class="pill">Space 시작/정지</span><span class="pill">궁극기 동시 입력 → CLASH</span></div>
   </aside>
@@ -211,8 +264,8 @@ const chars=[
  clutch:'CLUTCH: 즉시 피자 생성, 회복량과 투사체 피해 강화.'},
 {id:'gwak',name:'고아의 왕 곽동현',short:'고아의 왕 곽동현',hp:315,atk:15,speed:249,skillCd:5.5,ultCd:17,ultPower:90,skillName:'무연고',ultName:'나 홀로 선 왕',quote:'“혼자면 충분하다.”',
  skill:'4초간 받는 피해 35% 감소.',
- ult:'보호막 50 + 6초 평타/속도 강화. 볼 크기가 커져 충돌력이 증가.',
- clutch:'CLUTCH: 고독 결계. 보호막 추가와 공격 강화.'},
+ ult:'보호막 50 + 6초 평타/속도 강화. 볼 크기가 커지고, 궁극기 동안 상대를 추적하며 돌진한다. 첫 충돌은 추가 돌진 피해를 준다.',
+ clutch:'CLUTCH: 고독 결계. 보호막 추가와 공격 강화. 궁극기 추격 회전 성능도 상승.'},
 {id:'hyojun',name:'일산의 왕 김효준',short:'일산의 왕 김효준',hp:300,atk:16,speed:249,skillCd:5.0,ultCd:16,ultPower:89,skillName:'킨텍스 전개',ultName:'호수공원 결계',quote:'“들어오는 순간 이미 판은 짜였다.”',
  skill:'3.5초간 벽 반사 때 광역 충격파. 일산 맵에서 강화.',
  ult:'6초간 강화 벽 충격파 + 이동속도 상승.',
@@ -221,10 +274,11 @@ const chars=[
  skill:'24 회복 + 3초 평타 강화. 안산 맵에서 회복량 증가.',
  ult:'230px 왕의 충격파 + 다음 2회 벽 반사 충격파. 잠시 볼 크기 증가.',
  clutch:'CLUTCH: 왕의 민심 폭발. 회복과 충돌 공격 강화.'},
-{id:'pre',name:'각성 전 황성배',short:'각성 전 황성배',hp:295,atk:15,speed:253,skillCd:5.0,ultCd:15,ultPower:87,skillName:'각성의 전조',ultName:'미완의 각성',quote:'“이번엔… 다르다.”',
- skill:'체력 8을 소모하고 5초간 평타 +10, 이동속도 +12%.',
- ult:'7초간 평타 +14, 이동속도 +25%. 종료 시 반동 피해.',
- clutch:'CLUTCH: 반동 피해 감소, 미완의 각성 지속시간 증가.'}
+
+{id:'youngwoong',name:'미시헌터 전영웅',short:'미시헌터 전영웅',hp:298,atk:15,speed:248,skillCd:0,ultCd:17,ultPower:90,passiveSkill:true,skillName:'헌터 사이트',ultName:'트리플 헌팅 그라운드',quote:'“조준은 끝났다.”',
+ skill:'PASSIVE: 맵을 빠르게 왕복하는 조준선이 상대 볼과 겹치면 확정 저격. 저격 피해 24, 내부 재장전 4.5초. 직접 발동하지 않는다.',
+ ult:'맵의 랜덤한 위치에 12초 동안 유지되는 원형 지형 3개를 생성. 볼이 지형에 부딪히면 실제로 튕겨 이동 궤적이 바뀐다.',
+ clutch:'CLUTCH: 조준선 이동속도 +25%, 확정 저격 피해 +6.'}
 ];
 
 const wallTypes={
@@ -243,17 +297,40 @@ const events=[
 ];
 
 let p1,p2,running=false,last=performance.now(),gameTime=0,collisionCd=0;
-let particles=[],rings=[],texts=[],projectiles=[],ultFx=[],ghostHands=[],pizzas=[],trails=[];
+let particles=[],rings=[],texts=[],projectiles=[],ultFx=[],ghostHands=[],pizzas=[],trails=[],terrainCircles=[],sniperShots=[];
 let shake=0,flash=0,nearMissLatch=false,currentEvent=null,nextEventAt=30,arena='neutral',walls={};
 let pendingUlt=null,ambientTimer=0,lastWinnerMeta='',soundOn=true,audioCtx=null,motAudio=null,isaacAudio=null;
-let mobileMode=false,simulationMode=false,aiThinkP1=0,aiThinkP2=0;
+let mobileMode=false,simulationMode=false,aiThinkP1=0,aiThinkP2=0,battleMode='duel',teamSize=1,teamPlayers=[],teamProjectiles=[],teamTerrains=[],teamItems=[];
 
 function fillSelect(sel){sel.innerHTML=chars.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
 fillSelect($('p1Select'));fillSelect($('p2Select'));$('p2Select').selectedIndex=1;
 function C(id){return chars.find(c=>c.id===id)}
-function desc(c,key1,key2){return `<b>${c.skillName}</b> (${c.skillCd}s)<br>${c.skill}<br><br><b>${c.ultName}</b> (${c.ultCd}s)<br>${c.ult}<br><br>${c.clutch}`}
+function desc(c,key1,key2){const skillMeta=c.passiveSkill?'PASSIVE':`${c.skillCd}s`;return `<b>${c.skillName}</b> (${skillMeta})<br>${c.skill}<br><br><b>${c.ultName}</b> (${c.ultCd}s)<br>${c.ult}<br><br>${c.clutch}`}
 function setupDesc(){const a=C($('p1Select').value),b=C($('p2Select').value);$('p1Desc').innerHTML=desc(a);$('p2Desc').innerHTML=desc(b)}
+
 $('p1Select').onchange=setupDesc;$('p2Select').onchange=setupDesc;setupDesc();
+
+function teamSelectOptions(selectedIndex=0){
+ return chars.map((c,i)=>`<option value="${c.id}" ${i===selectedIndex?'selected':''}>${c.name}</option>`).join('');
+}
+function renderTeamSelectors(n){
+ const a=$('teamASelects'),b=$('teamBSelects');a.innerHTML='';b.innerHTML='';
+ for(let i=0;i<n;i++){
+   a.insertAdjacentHTML('beforeend',`<div class="team-slot"><span>A${i+1}</span><select id="teamA${i}">${teamSelectOptions(i%chars.length)}</select></div>`);
+   b.insertAdjacentHTML('beforeend',`<div class="team-slot"><span>B${i+1}</span><select id="teamB${i}">${teamSelectOptions((i+4)%chars.length)}</select></div>`);
+ }
+}
+function syncBattleModeSetup(){
+ const n=Number($('battleModeSelect').value)||1;
+ const team=n>1;
+ $('duelSetup').style.display=team?'none':'block';
+ $('teamSetup').classList.toggle('show',team);
+ $('teamOnlyNote').style.display=team?'block':'none';
+ if(team)renderTeamSelectors(n);
+}
+$('battleModeSelect').onchange=syncBattleModeSetup;
+syncBattleModeSetup();
+
 
 function W(){return canvas.getBoundingClientRect().width}function H(){return canvas.getBoundingClientRect().height}
 function resize(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0)}
@@ -264,16 +341,36 @@ function enemy(p){return p===p1?p2:p1}
 function log(msg){$('log').innerHTML=`<div><span style="color:#66748a">[${gameTime.toFixed(1)}]</span> ${msg}</div>`+$('log').innerHTML}
 function shownName(p){return p.titleTime>0?p.tempTitle:p.short}
 
+let audioUnlocked=false;
 function ensureAudio(){
  if(!soundOn)return;
  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
- if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
  if(!motAudio){motAudio=new Audio('assets/mot.mp3');motAudio.preload='auto';motAudio.volume=.9}
  if(!isaacAudio){isaacAudio=new Audio('assets/daesak.mp3');isaacAudio.preload='auto';isaacAudio.volume=.95}
 }
-async function unlockAudio(){ensureAudio();try{if(audioCtx&&audioCtx.state==='suspended')await audioCtx.resume()}catch(e){}}
+async function unlockAudio(){
+ if(!soundOn)return false;
+ ensureAudio();
+ try{
+   if(audioCtx&&audioCtx.state!=='running')await audioCtx.resume();
+   if(audioCtx&&audioCtx.state==='running'){
+     const buf=audioCtx.createBuffer(1,1,22050);
+     const src=audioCtx.createBufferSource();src.buffer=buf;src.connect(audioCtx.destination);src.start();
+     audioUnlocked=true;
+   }
+   for(const a of [motAudio,isaacAudio]){
+     if(!a)continue;
+     try{
+       const wasMuted=a.muted;a.muted=true;a.currentTime=0;
+       const pp=a.play();if(pp&&pp.then)await pp;
+       a.pause();a.currentTime=0;a.muted=wasMuted;
+     }catch(e){}
+   }
+ }catch(e){audioUnlocked=false}
+ return audioUnlocked;
+}
 function beep(type='hit'){
- if(!soundOn)return;ensureAudio();if(!audioCtx)return;
+ if(!soundOn)return;ensureAudio();if(!audioCtx||audioCtx.state!=='running')return;
  const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;
  const cfg={hit:[150,.045,.07],wall:[240,.03,.045],skill:[430,.08,.055],ult:[95,.18,.09],heal:[620,.09,.05],near:[760,.05,.035],event:[310,.2,.045],clash:[70,.35,.12],perfect:[900,.11,.06],pizza:[520,.07,.04]}[type]||[200,.05,.04];
  o.type=type==='clash'?'sawtooth':'sine';o.frequency.setValueAtTime(cfg[0],t);if(type==='hit')o.frequency.exponentialRampToValueAtTime(90,t+cfg[1]);
@@ -285,6 +382,10 @@ function playVoice(kind){
  try{a.pause();a.currentTime=kind==='mot'?9:0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}
 }
 function stopVoices(){[motAudio,isaacAudio].forEach(a=>{if(a){a.pause();a.currentTime=0}})}
+['pointerdown','touchstart','keydown'].forEach(evt=>{
+ document.addEventListener(evt,()=>{if(soundOn)unlockAudio()},{capture:true,passive:true});
+});
+
 
 function chooseArena(){
  const r=Math.random();arena=r<.12?'ansan':r<.24?'ilsan':'neutral';
@@ -300,23 +401,23 @@ function makePlayer(c,slot){
   skillLeft:0,ultLeft:c.ultCd,shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,
   attackDebuff:0,attackDebuffTime:0,hitFlash:0,counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
   clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
-  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0
+  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?20:Math.max(20,W()-20),scanDir:slot===1?1:-1,scanShotCd:0,scanLatched:false,gwakChargeTime:0,gwakChargeHitReady:false
  }
 }
 function resetBattle(){
  stopVoices();chooseArena();rollWalls();gameTime=0;collisionCd=0;currentEvent=null;nextEventAt=30;pendingUlt=null;ambientTimer=0;
- particles=[];rings=[];texts=[];projectiles=[];ultFx=[];ghostHands=[];pizzas=[];trails=[];shake=0;flash=0;nearMissLatch=false;lastWinnerMeta='';
+ particles=[];rings=[];texts=[];projectiles=[];ultFx=[];ghostHands=[];pizzas=[];trails=[];terrainCircles=[];sniperShots=[];shake=0;flash=0;nearMissLatch=false;lastWinnerMeta='';
  p1=makePlayer(C($('p1Select').value),1);p2=makePlayer(C($('p2Select').value),2);running=false;aiThinkP1=rand(.2,.5);aiThinkP2=rand(.2,.5);
  $('winner').classList.remove('show');$('start').textContent='전투 시작';$('log').innerHTML='<div>대결 준비 완료. 궁극기는 충전 중.</div>';
  updateSide();updateHud();
 }
-function skillHtml(p,key){return `<div class="skill-block"><div class="skill-head"><span>${key} · ${p.skillName}</span><span>${p.skillCd}s</span></div><div class="skill-body">${p.skill}</div></div><div class="skill-block"><div class="skill-head"><span>${p.slot===1?'W':'P'} · ${p.ultName}</span><span>${p.ultCd}s</span></div><div class="skill-body">${p.ult}</div></div><div class="skill-block"><div class="skill-head"><span>CLUTCH</span><span>100%</span></div><div class="skill-body">${p.clutch}</div></div>`}
+function skillHtml(p,key){const skillMeta=p.passiveSkill?'PASSIVE':`${p.skillCd}s`;return `<div class="skill-block"><div class="skill-head"><span>${key} · ${p.skillName}</span><span>${skillMeta}</span></div><div class="skill-body">${p.skill}</div></div><div class="skill-block"><div class="skill-head"><span>${p.slot===1?'W':'P'} · ${p.ultName}</span><span>${p.ultCd}s</span></div><div class="skill-body">${p.ult}</div></div><div class="skill-block"><div class="skill-head"><span>CLUTCH</span><span>100%</span></div><div class="skill-body">${p.clutch}</div></div>`}
 function updateSide(){
  $('p1SideName').textContent=`1P · ${shownName(p1)}`;$('p2SideName').textContent=`2P · ${shownName(p2)}`;
  $('p1SideInfo').innerHTML=skillHtml(p1,'Q');$('p2SideInfo').innerHTML=skillHtml(p2,'O');
 }
 function statusTags(p){
- const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
+ const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='youngwoong')a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
  if(p.awakenStage>0)a.push(`각성 ${p.awakenStage}단계`);if(p.buffTime>0)a.push('BUFF');if(p.defTime>0)a.push('DEF');
  return a.map(x=>`<span class="status-tag">${x}</span>`).join('')
 }
@@ -348,7 +449,7 @@ function triggerClutch(p){
   case 'gwak': p.shield+=35;p.buffAtk+=5;break;
   case 'hyojun': p.wallPulse=Math.max(p.wallPulse,8);p.wallPulseDamage=26;p.wallPulseRadius=200;break;
   case 'chang': heal(p,28);p.buffAtk+=6;break;
-  case 'pre': p.buffAtk+=8;p.postUltDamage=Math.max(0,p.postUltDamage-10);break;
+  case 'youngwoong': p.scanShotCd=Math.max(0,p.scanShotCd-2);break;
  }
 }
 function damage(target,amount,source,label='',isBasic=false){
@@ -378,7 +479,9 @@ function abilityBlocked(p){
  if(currentEvent&&currentEvent.id==='silence'&&currentEvent.left>0){txt(p.x,p.y-48,'SILENCED',true,'#f4df6a');p.skillLockedFlash=.3;return true}return false
 }
 function useSkill(p){
- if(!running||!p.alive||p.skillLeft>0||abilityBlocked(p))return;
+ if(!running||!p.alive)return;
+ if(p.passiveSkill){txt(p.x,p.y-48,'PASSIVE',true,'#ff6b6b');return;}
+ if(p.skillLeft>0||abilityBlocked(p))return;
  const perf=isPerfect(p), mul=perf?1.35:1;p.skillLeft=p.skillCd;if(perf){beep('perfect');cutin(`${p.slot}P · ${shownName(p)}`,'PERFECT',p.skillName,'#fff');log(`✨ <b>${shownName(p)}</b> PERFECT ${p.skillName}`)}else{beep('skill');log(`★ <b>${shownName(p)}</b> — ${p.skillName}`)}
  ring(p.x,p.y,90,.34,4,perf?'#fff':(p.slot===1?'#8dbbff':'#ff9b96'));burst(p.x,p.y,18,'#fff',1);
  const dur=perf?5:4;
@@ -391,7 +494,6 @@ function useSkill(p){
   case 'gwak':p.defReduce=perf?.45:.35;p.defTime=perf?5:4;break;
   case 'hyojun':p.wallPulse=perf?4.5:3.5;p.wallPulseDamage=perf?24:18;p.wallPulseRadius=perf?170:140;break;
   case 'chang':heal(p,(arena==='ansan'&&!p.titleBroken?32:24)*mul);p.buffAtk=5*mul;p.buffTime=Math.max(p.buffTime,perf?4:3);break;
-  case 'pre':damage(p,8,p,'체력 소모');if(p.alive){p.buffAtk=10*mul;p.buffSpeed=.12*mul;p.buffTime=Math.max(p.buffTime,perf?6:5)}break
  }
 }
 function requestUlt(p){
@@ -445,14 +547,17 @@ function executeUlt(p,scale=1,fromClash=false){
   case 'yookyung':
    heal(p,42*scale);for(let i=0;i<8;i++)fireProjectile(p,TAU*i/8,360,10*scale,'pizza',10,2.8);spawnPizza(3);break;
   case 'gwak':
-   p.shield+=50*scale;p.buffAtk=9*scale;p.buffSpeed=.15*scale;p.buffTime=Math.max(p.buffTime,6);p.r=34;p.sizeTime=6;break;
+   p.shield+=50*scale;p.buffAtk=9*scale;p.buffSpeed=.15*scale;p.buffTime=Math.max(p.buffTime,6);p.r=34;p.sizeTime=6;
+   p.gwakChargeTime=6;p.gwakChargeHitReady=true;
+   cutin(`${p.slot}P · ${shownName(p)}`,'추격 개시','나 홀로 선 왕','#d7d9ff');
+   break;
   case 'hyojun':
    p.wallPulse=6;p.wallPulseDamage=24*scale;p.wallPulseRadius=190;p.buffSpeed=.12;p.buffTime=Math.max(p.buffTime,6);break;
   case 'chang':
    if(Math.hypot(p.x-e.x,p.y-e.y)<=230)damage(e,54*scale,p,'왕의 판결 궁극기');
    p.wallPulse=999;p.wallPulseCharges=2;p.wallPulseDamage=22*scale;p.wallPulseRadius=170;p.r=31;p.sizeTime=5;break;
-  case 'pre':
-   p.buffAtk=14*scale;p.buffSpeed=.25*scale;p.buffTime=Math.max(p.buffTime,p.clutchActive>0?9:7);p.postUltDamage=p.clutchActive>0?10:22;p.postUltTimer=p.buffTime;break
+  case 'youngwoong':
+   spawnHunterTerrain(p,3,12);break
  }
 }
 function fireProjectile(owner,angle,speed,damage,type='normal',size=8,life=2.5,onHitHeal=0){
@@ -524,6 +629,12 @@ function collide(){
    damage(p2,a1d,p1,headOn?'HEAD-ON 평타':'평타',true);if(p1.alive&&p2.alive)damage(p1,a2d,p2,headOn?'HEAD-ON 평타':'평타',true);
    if(p1.counter&&p2.alive){const bonus=p1.counter==='perfect'?26:18;damage(p2,bonus,p1,'알잘딱 카운터');p1.counter=false}
    if(p2.counter&&p1.alive){const bonus=p2.counter==='perfect'?26:18;damage(p1,bonus,p2,'알잘딱 카운터');p2.counter=false}
+   if(p1.id==='gwak'&&p1.gwakChargeTime>0&&p1.gwakChargeHitReady&&p2.alive){
+     const bonus=p1.clutchActive>0?30:24;damage(p2,bonus,p1,'왕의 돌진');p1.gwakChargeHitReady=false;ring(p2.x,p2.y,95,.32,5,'#d7d9ff');shake=14;
+   }
+   if(p2.id==='gwak'&&p2.gwakChargeTime>0&&p2.gwakChargeHitReady&&p1.alive){
+     const bonus=p2.clutchActive>0?30:24;damage(p1,bonus,p2,'왕의 돌진');p2.gwakChargeHitReady=false;ring(p1.x,p1.y,95,.32,5,'#d7d9ff');shake=14;
+   }
    p1.bounceCombo=0;p2.bounceCombo=0;collisionCd=.62;shake=9;flash=.06
   }
  }else{
@@ -535,6 +646,97 @@ function collide(){
   if(gap>65)nearMissLatch=false
  }
 }
+
+
+function updateGwakCharge(p,dt){
+ if(!p||p.alive===false||p.id!=='gwak'||p.gwakChargeTime<=0)return;
+ const e=enemy(p);
+ p.gwakChargeTime=Math.max(0,p.gwakChargeTime-dt);
+
+ const current=Math.atan2(p.vy,p.vx);
+ const target=Math.atan2(e.y-p.y,e.x-p.x);
+
+ let diff=target-current;
+ while(diff>Math.PI)diff-=TAU;
+ while(diff<-Math.PI)diff+=TAU;
+
+ // Limited homing so the character still feels like a bouncing ball.
+ const turnRate=(p.clutchActive>0?3.25:2.35); // radians/sec
+ const step=clamp(diff,-turnRate*dt,turnRate*dt);
+ const next=current+step;
+
+ const speed=Math.hypot(p.vx,p.vy)*1.012;
+ p.vx=Math.cos(next)*speed;
+ p.vy=Math.sin(next)*speed;
+
+ // visual targeting line
+ if(Math.random()<.35){
+   trails.push({x:p.x,y:p.y,r:p.r*.55,life:.12,color:'#d9dcff'});
+ }
+}
+
+function updateSniperPassive(p,dt){
+ if(!p||p.alive===false||p.id!=='youngwoong')return;
+ const e=enemy(p);
+ const accel=Math.min(1.35,1+gameTime*.0025);
+ const clutchBoost=p.clutchActive>0?1.25:1;
+ const scanSpeed=520*accel*clutchBoost;
+
+ p.scanShotCd=Math.max(0,(p.scanShotCd||0)-dt);
+ p.scanX+=(p.scanDir||1)*scanSpeed*dt;
+ if(p.scanX<=8){p.scanX=8;p.scanDir=1}
+ if(p.scanX>=W()-8){p.scanX=W()-8;p.scanDir=-1}
+
+ const overlap=Math.abs(p.scanX-e.x)<=e.r+4;
+ if(overlap&&!p.scanLatched&&p.scanShotCd<=0&&!p.titleBroken){
+   p.scanLatched=true;
+   p.scanShotCd=4.5;
+   const shotDamage=24+(p.clutchActive>0?6:0);
+   sniperShots.push({owner:p,x:e.x,y:e.y,life:.28,maxLife:.28});
+   cutin(`${p.slot}P · ${shownName(p)}`,'LOCK ON','확정 저격','#ff6262');
+   ring(e.x,e.y,82,.30,3,'#ff5a5a');burst(e.x,e.y,18,'#ff7575',1.1);flash=.08;shake=7;
+   beep('hit');
+   damage(e,shotDamage,p,'확정 저격');
+ }else if(!overlap){
+   p.scanLatched=false;
+ }
+}
+
+function spawnHunterTerrain(owner,count=3,duration=12){
+ const created=[];
+ for(let i=0;i<count;i++){
+   let found=null;
+   for(let tries=0;tries<80&&!found;tries++){
+     const r=rand(44,62),x=rand(r+24,W()-r-24),y=rand(r+35,H()-r-24);
+     const safeFromPlayers=[p1,p2].every(p=>Math.hypot(x-p.x,y-p.y)>r+p.r+55);
+     const safeFromOther=[...terrainCircles,...created].every(c=>Math.hypot(x-c.x,y-c.y)>r+c.r+28);
+     if(safeFromPlayers&&safeFromOther)found={owner,x,y,r,life:duration,maxLife:duration,hitFlash:0};
+   }
+   if(found)created.push(found);
+ }
+ terrainCircles.push(...created);
+ log(`◎ <b>${shownName(owner)}</b> 원형 지형 ${created.length}개 생성`);
+}
+
+function collideTerrain(p,c){
+ const dx=p.x-c.x,dy=p.y-c.y,d=Math.hypot(dx,dy)||.001,min=p.r+c.r;
+ if(d>=min)return;
+ const nx=dx/d,ny=dy/d;
+ p.x=c.x+nx*(min+.5);p.y=c.y+ny*(min+.5);
+ const dot=p.vx*nx+p.vy*ny;
+ if(dot<0){
+   p.vx-=2*dot*nx;p.vy-=2*dot*ny;
+   c.hitFlash=.15;ring(p.x,p.y,48,.20,2,'#ffb4b4');beep('wall');
+ }
+}
+function updateHunterTerrain(dt){
+ for(const c of terrainCircles){c.life-=dt;c.hitFlash=Math.max(0,c.hitFlash-dt)}
+ terrainCircles=terrainCircles.filter(c=>c.life>0);
+ for(const p of [p1,p2])if(p&&p.alive!==false)for(const c of terrainCircles)collideTerrain(p,c);
+ for(const s of sniperShots)s.life-=dt;
+ sniperShots=sniperShots.filter(s=>s.life>0);
+}
+
 function updateProjectiles(dt){
  for(const q of projectiles){
   q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt;q.rot+=dt*5;
@@ -564,12 +766,260 @@ function ambient(dt){
  if(arena==='neutral'||!soundOn||!running)return;ambientTimer-=dt;if(ambientTimer<=0){ambientTimer=2.4;beep(arena==='ansan'?'skill':'near')}
 }
 
+
+function makeTeamPlayer(c,team,index,n){
+ const left=team==='A';
+ const y=H()*(index+1)/(n+1);
+ let vx=(left?1:-1)*c.speed,vy=rand(-115,115);[vx,vy]=norm(vx,vy,c.speed);
+ return {...c,uid:`${team}${index}_${Math.random().toString(36).slice(2,6)}`,team,index,slot:left?1:2,
+   r:22,baseR:22,x:left?W()*.18:W()*.82,y,vx,vy,maxHp:c.hp,hp:c.hp,alive:true,
+   skillLeft:0,ultLeft:c.ultCd,aiUltReadyAge:0,aiThink:rand(.12,.45),hitCd:0,
+   shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,attackDebuff:0,attackDebuffTime:0,
+   counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
+   sizeTime:0,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,
+   scanX:left?15:W()-15,scanDir:left?1:-1,scanShotCd:0,scanLatched:false,
+   gwakChargeTime:0,gwakChargeHitReady:false,awakenStage:0,postUltDamage:0,postUltTimer:0
+ };
+}
+function teamEnemies(p){return teamPlayers.filter(x=>x.alive&&x.team!==p.team)}
+function teamAllies(p){return teamPlayers.filter(x=>x.alive&&x.team===p.team)}
+function teamTarget(p){
+ const list=teamEnemies(p);if(!list.length)return null;
+ return list.sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0];
+}
+function resetTeamBattle(){
+ stopVoices();chooseArena();rollWalls();gameTime=0;currentEvent=null;nextEventAt=9999;ambientTimer=0;
+ particles=[];rings=[];texts=[];projectiles=[];ultFx=[];ghostHands=[];pizzas=[];trails=[];terrainCircles=[];sniperShots=[];
+ teamProjectiles=[];teamTerrains=[];teamItems=[];shake=0;flash=0;lastWinnerMeta='';
+ teamPlayers=[];
+ for(let i=0;i<teamSize;i++){
+   teamPlayers.push(makeTeamPlayer(C($(`teamA${i}`).value),'A',i,teamSize));
+   teamPlayers.push(makeTeamPlayer(C($(`teamB${i}`).value),'B',i,teamSize));
+ }
+ running=false;simulationMode=true;mobileMode=false;
+ $('mobileControls').classList.remove('show');$('mobileMode').textContent='📱 팀전 사용 불가';$('mobileMode').disabled=true;
+ $('simMode').textContent='🤖 팀전 AI 고정';$('simMode').disabled=true;$('simBadge').classList.add('show');$('simBadge').textContent=`🤖 ${teamSize} VS ${teamSize} TEAM AI`;
+ $('winner').classList.remove('show');$('start').textContent='전투 시작';$('log').innerHTML=`<div>${teamSize} vs ${teamSize} 팀전 준비 완료. 모든 캐릭터 AI 조작.</div>`;
+ updateTeamHud();
+}
+function finishTeam(winnerTeam){
+ running=false;beep('ult');flash=.28;shake=12;
+ const survivors=teamPlayers.filter(p=>p.alive&&p.team===winnerTeam);
+ $('winnerName').textContent=`TEAM ${winnerTeam} 승리`;
+ $('winnerQuote').textContent=survivors.length?survivors.map(p=>p.short).join(' · '):'';
+ $('winnerExtra').textContent=`생존 ${survivors.length}/${teamSize} · ${gameTime.toFixed(1)}초`;
+ $('winner').classList.add('show');
+}
+function checkTeamWinner(){
+ const a=teamPlayers.some(p=>p.alive&&p.team==='A'),b=teamPlayers.some(p=>p.alive&&p.team==='B');
+ if(!a||!b){finishTeam(a?'A':'B');return true}return false;
+}
+function teamDamage(target,amount,source,label=''){
+ if(!target||!target.alive)return;
+ if(target.defTime>0)amount*=1-target.defReduce;
+ if(target.shield>0){const used=Math.min(target.shield,amount);target.shield-=used;amount-=used}
+ amount=Math.max(0,amount);
+ if(amount>0){target.hp-=amount;target.hitFlash=.12;txt(target.x,target.y-30,`-${Math.round(amount)}`);burst(target.x,target.y,8,target.team==='A'?'#83b5ff':'#ff8e89',.8);beep('hit')}
+ if(label)log(`<b>${source.short}</b> ${label} → ${target.short} ${Math.round(amount)}`);
+ if(target.hp<=0){target.hp=0;target.alive=false;burst(target.x,target.y,22,'#fff',1.2);log(`💥 <b>${target.short}</b> 탈락`);checkTeamWinner()}
+}
+function teamHeal(p,a){if(!p.alive)return;p.hp=Math.min(p.maxHp,p.hp+a);txt(p.x,p.y-30,`+${Math.round(a)}`,false,'#80ef9c');beep('heal')}
+function teamFire(owner,angle,speed,damage,type='normal',life=2.4,heal=0){
+ teamProjectiles.push({owner,x:owner.x,y:owner.y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,damage,type,life,r:type==='pizza'?10:7,heal,rot:0})
+}
+function teamUseSkill(p){
+ if(!p.alive||p.passiveSkill||p.skillLeft>0)return;p.skillLeft=p.skillCd;beep('skill');
+ const t=teamTarget(p),ang=t?Math.atan2(t.y-p.y,t.x-p.x):Math.atan2(p.vy,p.vx);
+ switch(p.id){
+   case 'taeho':p.buffAtk=8;p.buffSpeed=.12;p.buffTime=4;break;
+   case 'awakened':p.buffAtk=10;p.buffSpeed=.20;p.buffTime=4;break;
+   case 'jaeyoung':[-.16,0,.16].forEach(o=>teamFire(p,ang+o,410,11,'hand'));break;
+   case 'isaac':p.shield+=20;p.counter=true;break;
+   case 'yookyung':teamFire(p,ang,385,26,'pizza',2.8,10);break;
+   case 'gwak':p.defReduce=.35;p.defTime=4;break;
+   case 'hyojun':p.wallPulse=3.5;p.wallPulseDamage=16;p.wallPulseRadius=135;break;
+   case 'chang':teamHeal(p,24);p.buffAtk=5;p.buffTime=3;break;
+ }
+}
+function teamUseUlt(p){
+ if(!p.alive||p.ultLeft>0)return;p.ultLeft=p.ultCd;p.aiUltReadyAge=0;beep('ult');flash=.12;
+ ultFx.push({type:p.id,p,x:p.x,y:p.y,life:1.1,maxLife:1.1,t:0});
+ const target=teamTarget(p);
+ if(p.id==='taeho')playVoice('mot');if(p.id==='isaac')playVoice('isaac');
+ switch(p.id){
+   case 'taeho':
+     if(target){teamDamage(target,44,p,'M.O.T');target.tempTitle='이명 박탈';target.titleTime=7;target.titleBroken=true;target.attackDebuff=.18;target.attackDebuffTime=7}
+     break;
+   case 'awakened':
+     teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<250).forEach(e=>teamDamage(e,48,p,'완전각성'));
+     p.buffAtk=10;p.buffSpeed=.20;p.buffTime=5;p.awakenStage=3;break;
+   case 'jaeyoung':
+     for(let i=0;i<12;i++)teamFire(p,TAU*i/12,420,8,'hand');p.defReduce=.25;p.defTime=3;break;
+   case 'isaac':
+     p.x=W()-p.x;p.y=H()-p.y;p.r=18;p.sizeTime=5;p.buffSpeed=.18;p.buffTime=5;
+     teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<190).forEach(e=>teamDamage(e,44,p,'대 이 삭'));
+     break;
+   case 'yookyung':
+     teamHeal(p,38);for(let i=0;i<8;i++)teamFire(p,TAU*i/8,350,9,'pizza',2.8);for(let i=0;i<2;i++)teamItems.push({x:rand(50,W()-50),y:rand(70,H()-50),r:11,life:12});break;
+   case 'gwak':
+     p.shield+=50;p.buffAtk=9;p.buffSpeed=.15;p.buffTime=6;p.r=31;p.sizeTime=6;p.gwakChargeTime=6;p.gwakChargeHitReady=true;break;
+   case 'hyojun':
+     p.wallPulse=6;p.wallPulseDamage=22;p.wallPulseRadius=185;p.buffSpeed=.12;p.buffTime=6;break;
+   case 'chang':
+     teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<230).forEach(e=>teamDamage(e,46,p,'왕의 판결'));
+     p.wallPulse=999;p.wallPulseCharges=2;p.wallPulseDamage=20;p.wallPulseRadius=165;p.r=28;p.sizeTime=5;break;
+   case 'youngwoong':
+     teamSpawnTerrain(p,3,12);break;
+ }
+ log(`★★ <b>${p.short}</b> — ${p.ultName}`);
+}
+function teamSpawnTerrain(owner,count=3,duration=12){
+ for(let i=0;i<count;i++){
+   let c=null;
+   for(let k=0;k<50&&!c;k++){
+     const r=rand(38,54),x=rand(r+20,W()-r-20),y=rand(r+25,H()-r-20);
+     if(teamPlayers.every(p=>Math.hypot(x-p.x,y-p.y)>r+p.r+35)&&teamTerrains.every(q=>Math.hypot(x-q.x,y-q.y)>r+q.r+18))c={owner,x,y,r,life:duration};
+   }
+   if(c)teamTerrains.push(c);
+ }
+}
+function teamBounce(p,side){
+ beep('wall');
+ const type=walls[side];
+ if(type==='accel'){p.wallBoost=.13;p.wallBoostTime=2.5}
+ if(type==='twist'){const r=(Math.random()<.5?-1:1)*.45,c=Math.cos(r),s=Math.sin(r),vx=p.vx*c-p.vy*s,vy=p.vx*s+p.vy*c;p.vx=vx;p.vy=vy}
+ if(type==='seal'){p.skillLeft+=.7;p.ultLeft+=.35}
+ if(type==='shock'){teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<145).forEach(e=>teamDamage(e,9,p,'충격 벽'))}
+ if(p.wallPulse>0){
+   teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<=p.wallPulseRadius).forEach(e=>teamDamage(e,p.wallPulseDamage,p,'벽 충격파'));
+   if(p.wallPulseCharges){p.wallPulseCharges--;if(p.wallPulseCharges<=0)p.wallPulse=0}
+ }
+}
+function teamBounds(p){
+ if(p.x<p.r){p.x=p.r;p.vx=Math.abs(p.vx);teamBounce(p,'left')}
+ if(p.x>W()-p.r){p.x=W()-p.r;p.vx=-Math.abs(p.vx);teamBounce(p,'right')}
+ if(p.y<p.r){p.y=p.r;p.vy=Math.abs(p.vy);teamBounce(p,'top')}
+ if(p.y>H()-p.r){p.y=H()-p.r;p.vy=-Math.abs(p.vy);teamBounce(p,'bottom')}
+}
+function teamTickPlayer(p,dt){
+ if(!p.alive)return;
+ p.hitCd=Math.max(0,p.hitCd-dt);p.skillLeft=Math.max(0,p.skillLeft-dt);p.ultLeft=Math.max(0,p.ultLeft-dt);
+ if(p.ultLeft<=0)p.aiUltReadyAge+=dt;else p.aiUltReadyAge=0;
+ if(p.buffTime>0){p.buffTime-=dt;if(p.buffTime<=0){p.buffAtk=0;p.buffSpeed=0}}
+ if(p.defTime>0){p.defTime-=dt;if(p.defTime<=0)p.defReduce=0}
+ if(p.attackDebuffTime>0){p.attackDebuffTime-=dt;if(p.attackDebuffTime<=0)p.attackDebuff=0}
+ if(p.titleTime>0){p.titleTime-=dt;if(p.titleTime<=0){p.titleBroken=false;p.tempTitle=''}}
+ if(p.sizeTime>0){p.sizeTime-=dt;if(p.sizeTime<=0)p.r=p.baseR}
+ if(p.wallBoostTime>0){p.wallBoostTime-=dt;if(p.wallBoostTime<=0)p.wallBoost=0}
+ if(p.wallPulse>0&&p.wallPulse<900)p.wallPulse=Math.max(0,p.wallPulse-dt);
+ if(p.id==='awakened'){const rr=p.hp/p.maxHp;p.awakenStage=rr<=.1?3:rr<=.25?2:rr<=.5?1:0}
+ const t=teamTarget(p);
+ if(p.id==='gwak'&&p.gwakChargeTime>0&&t){
+   p.gwakChargeTime-=dt;let cur=Math.atan2(p.vy,p.vx),tar=Math.atan2(t.y-p.y,t.x-p.x),diff=tar-cur;
+   while(diff>Math.PI)diff-=TAU;while(diff<-Math.PI)diff+=TAU;const step=clamp(diff,-2.4*dt,2.4*dt);cur+=step;
+   const sp=Math.hypot(p.vx,p.vy);p.vx=Math.cos(cur)*sp;p.vy=Math.sin(cur)*sp;
+ }
+ let accel=Math.min(2.05,1+gameTime*.0055),sp=p.speed*accel*(1+(p.buffSpeed||0)+(p.wallBoost||0));
+ [p.vx,p.vy]=norm(p.vx,p.vy,sp);p.x+=p.vx*dt;p.y+=p.vy*dt;teamBounds(p);
+ for(const c of teamTerrains){
+   const dx=p.x-c.x,dy=p.y-c.y,d=Math.hypot(dx,dy)||.001,min=p.r+c.r;if(d<min){const nx=dx/d,ny=dy/d;p.x=c.x+nx*(min+.2);p.y=c.y+ny*(min+.2);const dot=p.vx*nx+p.vy*ny;if(dot<0){p.vx-=2*dot*nx;p.vy-=2*dot*ny;beep('wall')}}
+ }
+}
+function teamSniper(p,dt){
+ if(!p.alive||p.id!=='youngwoong'||p.titleBroken)return;
+ p.scanShotCd=Math.max(0,p.scanShotCd-dt);p.scanX+=p.scanDir*500*dt;if(p.scanX<8){p.scanX=8;p.scanDir=1}if(p.scanX>W()-8){p.scanX=W()-8;p.scanDir=-1}
+ const hits=teamEnemies(p).filter(e=>Math.abs(p.scanX-e.x)<=e.r+4);
+ if(hits.length&&!p.scanLatched&&p.scanShotCd<=0){p.scanLatched=true;p.scanShotCd=4.5;const t=hits.sort((a,b)=>a.hp-b.hp)[0];sniperShots.push({owner:p,x:t.x,y:t.y,life:.25,maxLife:.25});teamDamage(t,24,p,'확정 저격')}
+ if(!hits.length)p.scanLatched=false;
+}
+function teamAI(p,dt){
+ if(!p.alive)return;p.aiThink-=dt;if(p.aiThink>0)return;p.aiThink=rand(.14,.38);
+ const t=teamTarget(p);if(!t)return;
+ if(p.ultLeft<=0&&(p.aiUltReadyAge>2.4||p.hp/p.maxHp<.55||Math.random()<.28)){teamUseUlt(p);return}
+ if(!p.passiveSkill&&p.skillLeft<=0&&(p.hp/p.maxHp<.7||Math.random()<.32))teamUseSkill(p);
+}
+function teamCollisions(){
+ const alive=teamPlayers.filter(p=>p.alive);
+ for(let i=0;i<alive.length;i++)for(let j=i+1;j<alive.length;j++){
+   const a=alive[i],b=alive[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.001,min=a.r+b.r;
+   if(d>=min)continue;const nx=dx/d,ny=dy/d,ov=min-d;a.x-=nx*ov/2;a.y-=ny*ov/2;b.x+=nx*ov/2;b.y+=ny*ov/2;
+   const av=a.vx*nx+a.vy*ny,bv=b.vx*nx+b.vy*ny;a.vx+=(bv-av)*nx;a.vy+=(bv-av)*ny;b.vx+=(av-bv)*nx;b.vy+=(av-bv)*ny;
+   if(a.team!==b.team&&a.hitCd<=0&&b.hitCd<=0){
+     let da=a.atk+(a.buffAtk||0)+(a.id==='awakened'?a.awakenStage*2:0),db=b.atk+(b.buffAtk||0)+(b.id==='awakened'?b.awakenStage*2:0);
+     if(a.attackDebuffTime>0)da*=1-a.attackDebuff;if(b.attackDebuffTime>0)db*=1-b.attackDebuff;
+     teamDamage(b,da,a,'평타');if(a.alive&&b.alive)teamDamage(a,db,b,'평타');
+     if(a.counter&&b.alive){teamDamage(b,18,a,'카운터');a.counter=false}if(b.counter&&a.alive){teamDamage(a,18,b,'카운터');b.counter=false}
+     if(a.id==='gwak'&&a.gwakChargeTime>0&&a.gwakChargeHitReady&&b.alive){teamDamage(b,24,a,'왕의 돌진');a.gwakChargeHitReady=false}
+     if(b.id==='gwak'&&b.gwakChargeTime>0&&b.gwakChargeHitReady&&a.alive){teamDamage(a,24,b,'왕의 돌진');b.gwakChargeHitReady=false}
+     a.hitCd=b.hitCd=.58;
+   }
+ }
+}
+function updateTeamProjectiles(dt){
+ for(const q of teamProjectiles){
+   q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt;q.rot+=dt*5;
+   if(q.x<0||q.x>W()||q.y<0||q.y>H()){q.life=0;continue}
+   for(const t of teamPlayers){
+     if(!t.alive||t.team===q.owner.team)continue;
+     if(Math.hypot(q.x-t.x,q.y-t.y)<q.r+t.r){teamDamage(t,q.damage,q.owner,q.type==='pizza'?'피자 적중':'투사체');if(q.heal)teamHeal(q.owner,q.heal);q.life=0;break}
+   }
+ }
+ teamProjectiles=teamProjectiles.filter(q=>q.life>0);
+ for(const c of teamTerrains)c.life-=dt;teamTerrains=teamTerrains.filter(c=>c.life>0);
+ for(const z of teamItems)z.life-=dt;teamItems=teamItems.filter(z=>z.life>0);
+ for(const p of teamPlayers)if(p.alive)for(const z of teamItems){if(z.life>0&&Math.hypot(p.x-z.x,p.y-z.y)<p.r+z.r){z.life=0;teamHeal(p,p.id==='yookyung'?26:15)}}
+}
+function updateTeam(dt){
+ gameTime+=dt;shake=Math.max(0,shake-dt*18);flash=Math.max(0,flash-dt);
+ for(const p of teamPlayers){teamTickPlayer(p,dt);teamSniper(p,dt);teamAI(p,dt)}
+ teamCollisions();updateTeamProjectiles(dt);
+ particles.forEach(a=>{a.x+=a.vx*dt;a.y+=a.vy*dt;a.life-=dt;a.vx*=.97;a.vy*=.97});particles=particles.filter(a=>a.life>0);
+ rings.forEach(r=>{r.life-=dt;r.r+=(r.maxR-r.r)*Math.min(1,dt*9)});rings=rings.filter(r=>r.life>0);
+ texts.forEach(t=>{t.y-=35*dt;t.life-=dt});texts=texts.filter(t=>t.life>0);
+ ultFx.forEach(f=>{f.life-=dt;f.t+=dt});ultFx=ultFx.filter(f=>f.life>0);
+ sniperShots.forEach(s=>s.life-=dt);sniperShots=sniperShots.filter(s=>s.life>0)
+}
+function teamSymbol(p){
+ return p.id==='taeho'?'MOT':p.id==='awakened'?'醒':p.id==='jaeyoung'?'千':p.id==='isaac'?'大':p.id==='yookyung'?'🍕':p.id==='gwak'?'孤':p.id==='hyojun'?'一山':p.id==='chang'?'安山':p.id==='youngwoong'?'狙':'?';
+}
+function drawTeamBattle(){
+ const w=W(),h=H(),sx=shake?rand(-shake,shake):0,sy=shake?rand(-shake,shake):0;ctx.save();ctx.translate(sx,sy);ctx.clearRect(-30,-30,w+60,h+60);drawBackground(w,h);
+ for(const c of teamTerrains){ctx.save();ctx.fillStyle='rgba(255,90,90,.10)';ctx.strokeStyle='#ff7777';ctx.lineWidth=3;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,TAU);ctx.fill();ctx.stroke();ctx.restore()}
+ for(const z of teamItems){ctx.fillStyle='#ffd65a';ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,TAU);ctx.fill()}
+ for(const f of ultFx)drawUlt(f,w,h);
+ for(const p of teamPlayers)if(p.alive&&p.id==='youngwoong'){ctx.save();ctx.strokeStyle=p.scanShotCd<=0?'rgba(255,70,70,.8)':'rgba(255,120,120,.35)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.scanX,0);ctx.lineTo(p.scanX,h);ctx.stroke();ctx.restore()}
+ for(const s of sniperShots){ctx.save();ctx.globalAlpha=Math.max(0,s.life/s.maxLife);ctx.strokeStyle='#ff3f3f';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(s.x,0);ctx.lineTo(s.x,s.y);ctx.stroke();ctx.restore()}
+ for(const q of teamProjectiles){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.rot);ctx.fillStyle=q.type==='pizza'?'#ffd65a':'#ffe39a';ctx.beginPath();ctx.arc(0,0,q.r,0,TAU);ctx.fill();ctx.restore()}
+ for(const p of teamPlayers){
+   if(!p.alive)continue;ctx.save();ctx.fillStyle=p.team==='A'?'#dce9ff':'#ffe0de';ctx.strokeStyle=p.team==='A'?'#5c8ed6':'#ce6965';ctx.lineWidth=3;
+   if(p.shield>0){ctx.strokeStyle='#fff';ctx.beginPath();ctx.arc(p.x,p.y,p.r+7,0,TAU);ctx.stroke();ctx.strokeStyle=p.team==='A'?'#5c8ed6':'#ce6965'}
+   ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle='#090d13';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(teamSymbol(p),p.x,p.y);
+   ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(`${p.team}${p.index+1} ${p.short}`,p.x,p.y+p.r+13);
+   const bw=48,bh=4;ctx.fillStyle='#27303e';ctx.fillRect(p.x-bw/2,p.y+p.r+18,bw,bh);ctx.fillStyle=p.team==='A'?'#8bb7ff':'#ff8f89';ctx.fillRect(p.x-bw/2,p.y+p.r+18,bw*clamp(p.hp/p.maxHp,0,1),bh);ctx.restore()
+ }
+ for(const a of particles){ctx.globalAlpha=Math.max(0,a.life/a.max);ctx.fillStyle=a.color;ctx.beginPath();ctx.arc(a.x,a.y,a.size,0,TAU);ctx.fill()}ctx.globalAlpha=1;
+ for(const t of texts){ctx.globalAlpha=Math.max(0,t.life);ctx.fillStyle=t.color;ctx.font=t.big?'950 18px system-ui':'900 12px system-ui';ctx.textAlign='center';ctx.fillText(t.s,t.x,t.y)}ctx.globalAlpha=1;
+ if(flash>0){ctx.fillStyle=`rgba(255,255,255,${Math.min(.55,flash*1.6)})`;ctx.fillRect(0,0,w,h)}ctx.restore()
+}
+function updateTeamHud(){
+ const a=teamPlayers.filter(p=>p.team==='A'),b=teamPlayers.filter(p=>p.team==='B'),aa=a.filter(p=>p.alive),bb=b.filter(p=>p.alive);
+ const ahp=a.reduce((s,p)=>s+Math.max(0,p.hp),0),bhp=b.reduce((s,p)=>s+Math.max(0,p.hp),0),amax=a.reduce((s,p)=>s+p.maxHp,0)||1,bmax=b.reduce((s,p)=>s+p.maxHp,0)||1;
+ $('teamAAlive').textContent=`TEAM A · ${aa.length}/${teamSize}`;$('teamBAlive').textContent=`TEAM B · ${bb.length}/${teamSize}`;
+ $('teamAHpText').textContent=`${Math.ceil(ahp)} HP`;$('teamBHpText').textContent=`${Math.ceil(bhp)} HP`;
+ $('teamAHpBar').style.transform=`scaleX(${clamp(ahp/amax,0,1)})`;$('teamBHpBar').style.transform=`scaleX(${clamp(bhp/bmax,0,1)})`;
+ $('teamRosterGrid').innerHTML=[...a,...b].map(p=>`<div class="team-unit ${p.alive?'':'dead'}"><div class="u-name">${p.team}${p.index+1} · ${p.short}</div><div class="u-hp">${Math.ceil(Math.max(0,p.hp))}/${p.maxHp} · ULT ${p.ultLeft<=0?'READY':p.ultLeft.toFixed(1)+'s'}</div><div class="mini"><i style="width:${clamp(p.hp/p.maxHp*100,0,100)}%"></i></div></div>`).join('');
+ $('speedMeter').textContent=`TEAM ${teamSize}v${teamSize} · 가속 ×${Math.min(2.05,1+gameTime*.0055).toFixed(2)} · ${gameTime.toFixed(1)}초`;
+ $('eventBadge').textContent='AI TEAM BATTLE';
+}
+
 function setMobileMode(on){
+ if(battleMode==='team'){mobileMode=false;$('mobileControls').classList.remove('show');$('mobileMode').textContent='📱 팀전 사용 불가';return}
  mobileMode=on;
  $('mobileControls').classList.toggle('show',mobileMode);
  $('mobileMode').textContent=mobileMode?'📱 모바일 모드 ON':'📱 모바일 모드 OFF';
 }
 function setSimulationMode(on){
+ if(battleMode==='team')on=true;
  simulationMode=on;
  $('simBadge').classList.toggle('show',simulationMode);
  $('simMode').textContent=simulationMode?'🤖 시뮬레이션 ON':'🤖 시뮬레이션 OFF';
@@ -579,6 +1029,7 @@ function setSimulationMode(on){
 }
 function aiShouldSkill(p){
  const e=enemy(p),t=predictCollisionTime(p,e),hp=p.hp/p.maxHp,ehp=e.hp/e.maxHp;
+ if(p.passiveSkill)return false;
  if(p.skillLeft>0||abilityBlocked(p))return false;
  switch(p.id){
   case 'isaac': return t<.35 || hp<.55;
@@ -587,7 +1038,6 @@ function aiShouldSkill(p){
   case 'yookyung': return ehp<.75 || hp<.75;
   case 'hyojun': return p.bounceCombo>=2 || Math.random()<.18;
   case 'jaeyoung': return Math.random()<.32 || t<.5;
-  case 'pre': return hp>.18 && (ehp<.72 || Math.random()<.22);
   case 'awakened': return t<.45 || hp<.6;
   case 'taeho': return t<.4 || Math.random()<.22;
   default:return Math.random()<.2;
@@ -605,10 +1055,10 @@ function aiShouldUlt(p){
   case 'jaeyoung': tactical=ehp<.88 || hp<.55;break;
   case 'isaac': tactical=hp<.65 || ehp<.62;break;
   case 'yookyung': tactical=hp<.72 || ehp<.62;break;
-  case 'gwak': tactical=hp<.68 || ehp<.55;break;
+  case 'gwak': tactical=hp<.78 || ehp<.72 || d<360;break;
   case 'hyojun': tactical=p.bounceCombo>=1 || hp<.62;break;
   case 'chang': tactical=d<300 || hp<.62;break;
-  case 'pre': tactical=hp<.70 || ehp<.62;break;
+  case 'youngwoong': tactical=age>=1.2 || hp<.65;break;
  }
 
  // Once charged, willingness ramps up every AI think cycle.
@@ -637,7 +1087,7 @@ function update(dt){
  gameTime+=dt;collisionCd=Math.max(0,collisionCd-dt);shake=Math.max(0,shake-dt*18);flash=Math.max(0,flash-dt);
  tickEvent(dt);ambient(dt);aiTick(dt);
  if(pendingUlt){pendingUlt.left-=dt;if(pendingUlt.left<=0){const u=pendingUlt.p;pendingUlt=null;if(u&&u.alive!==false){if(simulationMode)log(`🤖 AI 궁극기 발동 — <b>${u.ultName}</b>`);executeUlt(u,1,false)}}}
- tickPlayer(p1,dt);tickPlayer(p2,dt);collide();updateProjectiles(dt);updateGhosts(dt);updatePizza(dt);
+ tickPlayer(p1,dt);tickPlayer(p2,dt);updateGwakCharge(p1,dt);updateGwakCharge(p2,dt);updateSniperPassive(p1,dt);updateSniperPassive(p2,dt);updateHunterTerrain(dt);collide();updateProjectiles(dt);updateGhosts(dt);updatePizza(dt);
  particles.forEach(a=>{a.x+=a.vx*dt;a.y+=a.vy*dt;a.life-=dt;a.vx*=.97;a.vy*=.97});particles=particles.filter(a=>a.life>0);
  rings.forEach(r=>{r.life-=dt;r.r+=(r.maxR-r.r)*Math.min(1,dt*9)});rings=rings.filter(r=>r.life>0);
  texts.forEach(t=>{t.y-=35*dt;t.life-=dt});texts=texts.filter(t=>t.life>0);
@@ -668,8 +1118,69 @@ function drawUlt(f,w,h){
  else if(f.type==='gwak'){const g=ctx.createRadialGradient(p.x,p.y,20,p.x,p.y,390);g.addColorStop(0,'rgba(180,180,220,0)');g.addColorStop(.55,`rgba(4,4,12,${.42*a})`);g.addColorStop(1,`rgba(0,0,0,${.85*a})`);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.strokeStyle=`rgba(220,220,255,${.75*a})`;ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x,p.y,105+t*18,0,TAU);ctx.stroke();ctx.font='900 56px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.globalAlpha=a;ctx.fillText('♛',p.x,p.y-75)}
  else if(f.type==='hyojun'){ctx.strokeStyle=`rgba(80,235,255,${.55*a})`;ctx.lineWidth=2;for(let i=0;i<13;i++){const yy=h*.54+i*24;ctx.beginPath();ctx.moveTo(w/2,h*.48);ctx.lineTo(i%2?w:0,yy);ctx.stroke()}for(let i=0;i<7;i++){const r=55+i*28+t*20;ctx.beginPath();ctx.ellipse(p.x,p.y,r,r*.3,0,0,TAU);ctx.stroke()}}
  else if(f.type==='chang'){ctx.fillStyle=`rgba(0,80,55,${.26*a})`;ctx.fillRect(0,0,w,h);ctx.strokeStyle=`rgba(85,255,190,${.78*a})`;ctx.lineWidth=5;ctx.beginPath();ctx.arc(p.x,p.y,120+t*20,0,TAU);ctx.stroke();ctx.font='1000 90px system-ui';ctx.textAlign='center';ctx.fillStyle='#72ffc9';ctx.globalAlpha=a;ctx.fillText('王',p.x,p.y+28)}
- else if(f.type==='pre'){ctx.fillStyle=`rgba(80,0,120,${.2*a})`;ctx.fillRect(0,0,w,h);for(let i=0;i<28;i++){ctx.fillStyle=`rgba(225,120,255,${rand(.1,.45)*a})`;ctx.fillRect(rand(0,w),rand(0,h),rand(20,120),rand(2,12))}ctx.strokeStyle=`rgba(225,145,255,${.8*a})`;ctx.lineWidth=4;ctx.beginPath();ctx.arc(p.x,p.y,90+Math.sin(t*13)*20,0,TAU);ctx.stroke()}
+
+ else if(f.type==='youngwoong'){
+   ctx.fillStyle=`rgba(40,0,0,${.18*a})`;ctx.fillRect(0,0,w,h);
+   ctx.strokeStyle=`rgba(255,85,85,${.78*a})`;ctx.lineWidth=2;
+   for(let i=0;i<5;i++){const rr=65+i*34+t*12;ctx.beginPath();ctx.arc(p.x,p.y,rr,0,TAU);ctx.stroke()}
+   ctx.font='1000 58px system-ui';ctx.textAlign='center';ctx.fillStyle='#ff7373';ctx.globalAlpha=a;ctx.fillText('TARGET',w/2,h*.58)
+ }
  ctx.restore()
+}
+
+
+
+function drawGwakCharge(p){
+ if(!p||p.alive===false||p.id!=='gwak'||p.gwakChargeTime<=0)return;
+ const e=enemy(p),a=clamp(p.gwakChargeTime/6,0,1);
+ ctx.save();
+ ctx.globalAlpha=.75;
+ ctx.strokeStyle='#d7d9ff';
+ ctx.lineWidth=2.5;
+ ctx.setLineDash([7,7]);
+ ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(e.x,e.y);ctx.stroke();
+ ctx.setLineDash([]);
+ ctx.globalAlpha=.28+.2*Math.sin(performance.now()/80);
+ ctx.lineWidth=5;
+ ctx.beginPath();ctx.arc(p.x,p.y,p.r+18,0,TAU);ctx.stroke();
+ ctx.globalAlpha=1;
+ ctx.fillStyle='#d7d9ff';ctx.font='950 10px system-ui';ctx.textAlign='center';
+ ctx.fillText(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE',p.x,p.y-p.r-26);
+ ctx.restore();
+}
+
+function drawHunterSystems(){
+ for(const c of terrainCircles){
+   const fade=Math.min(1,c.life/1.2),ownerColor=c.owner&&c.owner.slot===1?'#ff7d7d':'#ff9e72';
+   ctx.save();ctx.globalAlpha=.72*fade;
+   const g=ctx.createRadialGradient(c.x,c.y,8,c.x,c.y,c.r);
+   g.addColorStop(0,'rgba(255,85,85,.04)');g.addColorStop(.72,'rgba(255,85,85,.12)');g.addColorStop(1,'rgba(255,85,85,.30)');
+   ctx.fillStyle=g;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,TAU);ctx.fill();
+   ctx.strokeStyle=c.hitFlash>0?'#fff':ownerColor;ctx.lineWidth=c.hitFlash>0?5:3;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,TAU);ctx.stroke();
+   ctx.setLineDash([5,6]);ctx.globalAlpha=.45*fade;ctx.beginPath();ctx.arc(c.x,c.y,c.r-10,0,TAU);ctx.stroke();ctx.setLineDash([]);
+   ctx.restore();
+ }
+ for(const p of [p1,p2]){
+   if(!p||p.id!=='youngwoong'||p.alive===false)continue;
+   ctx.save();
+   const disabled=p.titleBroken;
+   const color=disabled?'rgba(150,150,150,.45)':(p.scanShotCd<=0?'rgba(255,72,72,.88)':'rgba(255,130,130,.42)');
+   ctx.strokeStyle=color;ctx.lineWidth=p.scanShotCd<=0?2.4:1.5;
+   ctx.shadowBlur=p.scanShotCd<=0?18:8;ctx.shadowColor=color;
+   ctx.beginPath();ctx.moveTo(p.scanX,0);ctx.lineTo(p.scanX,H());ctx.stroke();
+   ctx.shadowBlur=0;
+   ctx.fillStyle=color;ctx.font='900 9px system-ui';ctx.textAlign='center';
+   ctx.fillText(disabled?'SCOPE JAMMED':(p.scanShotCd<=0?'LOCK READY':'RELOADING'),p.scanX,20);
+   ctx.restore();
+ }
+ for(const s of sniperShots){
+   const a=Math.max(0,s.life/s.maxLife);
+   ctx.save();ctx.globalAlpha=a;ctx.strokeStyle='#ff3f3f';ctx.lineWidth=5;ctx.shadowBlur=22;ctx.shadowColor='#ff3f3f';
+   ctx.beginPath();ctx.moveTo(s.x,0);ctx.lineTo(s.x,s.y);ctx.stroke();
+   ctx.shadowBlur=0;ctx.lineWidth=2;ctx.beginPath();ctx.arc(s.x,s.y,36+(1-a)*22,0,TAU);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(s.x-48,s.y);ctx.lineTo(s.x+48,s.y);ctx.moveTo(s.x,s.y-48);ctx.lineTo(s.x,s.y+48);ctx.stroke();
+   ctx.restore();
+ }
 }
 
 function drawTeleportPreview(p){
@@ -737,7 +1248,7 @@ function drawPlayer(p){
  if(p.id==='awakened'&&p.awakenStage>0){ctx.strokeStyle=['','#ffb36a','#ff724f','#fff0a0'][p.awakenStage];ctx.lineWidth=3+p.awakenStage;ctx.beginPath();ctx.arc(p.x,p.y,p.r+10+p.awakenStage*3,0,TAU);ctx.stroke()}
  ctx.fillStyle=p.hitFlash>0?'#fff':(p.slot===1?'#dce7ff':'#ffe4e4');ctx.strokeStyle=p.slot===1?'#5c87c9':'#bd625f';ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.fill();ctx.stroke();
  ctx.fillStyle='#0a0e14';ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
- const sym=p.id==='taeho'?'MOT':p.id==='awakened'?'醒':p.id==='jaeyoung'?'千':p.id==='isaac'?'大':p.id==='yookyung'?'🍕':p.id==='gwak'?'孤':p.id==='hyojun'?'一山':p.id==='chang'?'安山':'前';ctx.fillText(sym,p.x,p.y);
+ const sym=p.id==='taeho'?'MOT':p.id==='awakened'?'醒':p.id==='jaeyoung'?'千':p.id==='isaac'?'大':p.id==='yookyung'?'🍕':p.id==='gwak'?'孤':p.id==='hyojun'?'一山':p.id==='chang'?'安山':p.id==='youngwoong'?'狙':'?';ctx.fillText(sym,p.x,p.y);
  ctx.font='900 11px system-ui';ctx.fillStyle='#fff';ctx.fillText(`${p.slot}P · ${shownName(p)}`,p.x,p.y+p.r+18);ctx.restore()
 }
 function draw(){
@@ -748,6 +1259,8 @@ function draw(){
  for(const z of pizzas){ctx.save();ctx.translate(z.x,z.y);ctx.fillStyle='#ffd65a';ctx.strokeStyle='#fff4b0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-11,9);ctx.lineTo(14,0);ctx.lineTo(-11,-9);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
  for(const r of rings){ctx.globalAlpha=Math.max(0,r.life/r.maxLife);ctx.strokeStyle=r.color;ctx.lineWidth=r.width;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke()}ctx.globalAlpha=1;
  for(const q of projectiles){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.rot);if(q.type==='pizza'){ctx.fillStyle='#ffd65a';ctx.beginPath();ctx.moveTo(-11,9);ctx.lineTo(14,0);ctx.lineTo(-11,-9);ctx.closePath();ctx.fill()}else{ctx.fillStyle='#ffe39a';ctx.shadowBlur=18;ctx.shadowColor='#ffe39a';ctx.beginPath();ctx.arc(0,0,q.size,0,TAU);ctx.fill()}ctx.restore()}
+ drawHunterSystems();
+ drawGwakCharge(p1);drawGwakCharge(p2);
  drawTeleportPreview(p1);drawTeleportPreview(p2);
  drawPlayer(p1);drawPlayer(p2);
  for(const a of particles){ctx.globalAlpha=Math.max(0,a.life/a.max);ctx.fillStyle=a.color;ctx.beginPath();ctx.arc(a.x,a.y,a.size,0,TAU);ctx.fill()}ctx.globalAlpha=1;
@@ -773,39 +1286,56 @@ function setCd(prefix,left,max,blocked=false){
  setGauge(`${prefix}Bar`,1-clamp(l/m,0,1));
 }
 function updateHud(){
+ if(battleMode==='team'){updateTeamHud();return}
  if(!p1||!p2)return;const sil=currentEvent&&currentEvent.id==='silence';
  setGauge('p1Hp',safeRatio(p1.hp,p1.maxHp));setGauge('p2Hp',safeRatio(p2.hp,p2.maxHp));
  setGauge('p1Clutch',clamp(Number(p1.clutch)||0,0,100)/100);setGauge('p2Clutch',clamp(Number(p2.clutch)||0,0,100)/100);
  $('p1HpText').textContent=`${Math.ceil(Math.max(0,p1.hp))} / ${p1.maxHp}`;$('p2HpText').textContent=`${Math.ceil(Math.max(0,p2.hp))} / ${p2.maxHp}`;
  $('p1ClutchText').textContent=Math.round(p1.clutch)+'%';$('p2ClutchText').textContent=Math.round(p2.clutch)+'%';
  $('p1Name').textContent=`1P · ${shownName(p1)}`;$('p2Name').textContent=`2P · ${shownName(p2)}`;
- setCd('p1Skill',p1.skillLeft,p1.skillCd,sil);setCd('p1Ult',p1.ultLeft,p1.ultCd,sil);setCd('p2Skill',p2.skillLeft,p2.skillCd,sil);setCd('p2Ult',p2.ultLeft,p2.ultCd,sil);
+ $('mP1Skill').textContent=p1.passiveSkill?'AUTO':'Q';$('mP2Skill').textContent=p2.passiveSkill?'AUTO':'O';
+ if(p1.passiveSkill){$('p1SkillText').textContent='PASSIVE';setGauge('p1SkillBar',1)}else setCd('p1Skill',p1.skillLeft,p1.skillCd,sil);
+ setCd('p1Ult',p1.ultLeft,p1.ultCd,sil);
+ if(p2.passiveSkill){$('p2SkillText').textContent='PASSIVE';setGauge('p2SkillBar',1)}else setCd('p2Skill',p2.skillLeft,p2.skillCd,sil);
+ setCd('p2Ult',p2.ultLeft,p2.ultCd,sil);
  const accel=Math.min(2.15,1+gameTime*.0065);$('speedMeter').textContent=`가속 ×${accel.toFixed(2)} · ${gameTime.toFixed(1)}초`;
  $('eventBadge').textContent=currentEvent?`${currentEvent.name} ${Math.max(0,currentEvent.left).toFixed(1)}s`:`다음 이벤트 ${Math.max(0,nextEventAt-gameTime).toFixed(0)}s`;
  $('p1Status').innerHTML=statusTags(p1);$('p2Status').innerHTML=statusTags(p2);
  if($('p1SideName').textContent!==`1P · ${shownName(p1)}`)updateSide()
 }
-$('confirmSetup').onclick=async()=>{await unlockAudio();$('setupModal').classList.add('hidden');resize();resetBattle()};
-$('reselect').onclick=()=>{running=false;stopVoices();$('setupModal').classList.remove('hidden')};
-$('reset').onclick=resetBattle;$('rematch').onclick=()=>{resetBattle();running=true;$('start').textContent='일시정지'};
-$('start').onclick=async()=>{if(!p1||!p2)return;await unlockAudio();running=!running;$('start').textContent=running?'일시정지':'계속'};
+$('confirmSetup').onclick=async()=>{
+ await unlockAudio();$('setupModal').classList.add('hidden');resize();
+ const n=Number($('battleModeSelect').value)||1;teamSize=n;
+ battleMode=n===1?'duel':'team';
+ if(battleMode==='team'){
+   $('teamHud').classList.add('show');document.querySelector('.hud').style.display='none';$('teamRoster').classList.add('show');
+   document.querySelectorAll('.side .info-card').forEach(x=>x.style.display='none');resetTeamBattle();
+ }else{
+   $('teamHud').classList.remove('show');document.querySelector('.hud').style.display='grid';$('teamRoster').classList.remove('show');
+   document.querySelectorAll('.side .info-card').forEach(x=>x.style.display='block');
+   $('mobileMode').disabled=false;$('simMode').disabled=false;$('mobileMode').textContent=mobileMode?'📱 모바일 모드 ON':'📱 모바일 모드 OFF';$('simMode').textContent=simulationMode?'🤖 시뮬레이션 ON':'🤖 시뮬레이션 OFF';resetBattle();
+ }
+};
+$('reselect').onclick=()=>{running=false;stopVoices();$('setupModal').classList.remove('hidden');$('mobileMode').disabled=false;$('simMode').disabled=false};
+$('reset').onclick=()=>{battleMode==='team'?resetTeamBattle():resetBattle()};$('rematch').onclick=()=>{battleMode==='team'?resetTeamBattle():resetBattle();running=true;$('start').textContent='일시정지'};
+$('start').onclick=async()=>{await unlockAudio();if(battleMode==='team'){if(!teamPlayers.length)return}else if(!p1||!p2)return;running=!running;$('start').textContent=running?'일시정지':'계속'};
 $('soundToggle').onclick=async()=>{soundOn=!soundOn;$('soundToggle').textContent=soundOn?'🔊 사운드 ON':'🔇 사운드 OFF';if(soundOn)await unlockAudio();else stopVoices()};
 
-$('mobileMode').onclick=()=>setMobileMode(!mobileMode);
-$('simMode').onclick=()=>setSimulationMode(!simulationMode);
+$('mobileMode').onclick=async()=>{await unlockAudio();setMobileMode(!mobileMode)};
+$('simMode').onclick=async()=>{await unlockAudio();setSimulationMode(!simulationMode)};
 function bindTouch(id,fn){
  const el=$(id);
  const go=e=>{e.preventDefault();unlockAudio();fn()};
  el.addEventListener('touchstart',go,{passive:false});
  el.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'){e.preventDefault();unlockAudio();fn()}});
 }
-bindTouch('mP1Skill',()=>useSkill(p1));
-bindTouch('mP1Ult',()=>requestUlt(p1));
-bindTouch('mP2Skill',()=>useSkill(p2));
-bindTouch('mP2Ult',()=>requestUlt(p2));
+bindTouch('mP1Skill',()=>{if(battleMode==='duel')useSkill(p1)});
+bindTouch('mP1Ult',()=>{if(battleMode==='duel')requestUlt(p1)});
+bindTouch('mP2Skill',()=>{if(battleMode==='duel')useSkill(p2)});
+bindTouch('mP2Ult',()=>{if(battleMode==='duel')requestUlt(p2)});
 
-window.addEventListener('keydown',e=>{if(e.repeat)return;ensureAudio();const k=e.key.toLowerCase();if(k===' '){e.preventDefault();$('start').click();return}if(!running)return;if(k==='q')useSkill(p1);if(k==='w')requestUlt(p1);if(k==='o')useSkill(p2);if(k==='p')requestUlt(p2)});
-function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;if(running&&p1&&p2)update(dt);draw();updateHud();requestAnimationFrame(loop)}
+window.addEventListener('keydown',e=>{if(e.repeat)return;ensureAudio();const k=e.key.toLowerCase();if(k===' '){e.preventDefault();$('start').click();return}if(!running)return;if(battleMode==='team')return;if(k==='q')useSkill(p1);if(k==='w')requestUlt(p1);if(k==='o')useSkill(p2);if(k==='p')requestUlt(p2)});
+function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;if(battleMode==='team'){if(running&&teamPlayers.length)updateTeam(dt);drawTeamBattle()}else{if(running&&p1&&p2)update(dt);draw()}updateHud();requestAnimationFrame(loop)}
 resize();requestAnimationFrame(loop);
 </script>
 </body>
