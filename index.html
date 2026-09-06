@@ -131,6 +131,8 @@ canvas{display:block;width:100%;height:670px}
 .team-only-note{font-size:10px;color:#ffd981;margin-top:8px}
 @media(max-width:620px){.team-setup.show{grid-template-columns:1fr}.team-roster-grid{grid-template-columns:1fr 1fr}}
 
+@keyframes fieldFlash{0%{transform:scale(1);filter:brightness(1)}35%{transform:scale(1.12);filter:brightness(1.8)}100%{transform:scale(1);filter:brightness(1)}}
+.field-flash{animation:fieldFlash .55s ease-out}
 </style>
 </head>
 <body>
@@ -138,7 +140,7 @@ canvas{display:block;width:100%;height:670px}
   <div class="setup">
     <h2>만마보이즈 배틀 — TEAM BATTLE</h2>
     <div class="hint">1v1은 직접 조작/AI 모두 지원하고, 2v2~4v4 팀전은 AI 시뮬레이션 전용입니다.</div>
-    <div style="font-size:11px;color:#cbbcff;font-weight:900;margin-bottom:8px">Ver. 1.2.2 · 👻 동방 망령 강성언 참전</div><div class="mode-select-row">
+    <div style="font-size:11px;color:#cbbcff;font-weight:900;margin-bottom:8px">Ver. 1.2.5 · 👑 KING FIELD BUFF · 👻 동방 망령 강성언 참전</div><div class="mode-select-row">
       <label for="battleModeSelect">전투 모드</label>
       <select id="battleModeSelect">
         <option value="1">1 vs 1</option>
@@ -173,7 +175,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.2.3 — ISAAC NERF</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.2.5 — KING FIELD BUFF</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -271,16 +273,16 @@ const chars=[
  clutch:'CLUTCH: 고독 결계. 보호막 추가와 공격 강화. 궁극기 추격 회전 성능도 상승.'},
 {id:'hyojun',name:'일산의 왕 김효준',short:'일산의 왕 김효준',hp:300,atk:16,speed:249,skillCd:5.0,ultCd:16,ultPower:89,skillName:'킨텍스 전개',ultName:'호수공원 결계',quote:'“들어오는 순간 이미 판은 짜였다.”',
  skill:'3.5초간 벽 반사 때 광역 충격파. 일산 맵에서 강화.',
- ult:'6초간 강화 벽 충격파 + 이동속도 상승.',
+ ult:'궁극기 발동 즉시 경기장을 일산 홈그라운드로 변경. 6초간 강화 벽 충격파 + 이동속도 상승. 일산 홈 보너스가 즉시 적용된다.',
  clutch:'CLUTCH: 벽 충격파 범위/피해 강화. 일산 홈에서는 추가 강화.'},
 {id:'chang',name:'안산의 왕 창령',short:'안산의 왕 창령',hp:305,atk:16,speed:250,skillCd:5.5,ultCd:16,ultPower:92,skillName:'안산의 민심',ultName:'왕의 판결',quote:'“안산에서 나를 상대한다고?”',
  skill:'24 회복 + 3초 평타 강화. 안산 맵에서 회복량 증가.',
- ult:'230px 왕의 충격파 + 다음 2회 벽 반사 충격파. 잠시 볼 크기 증가.',
+ ult:'궁극기 발동 즉시 경기장을 안산 홈그라운드로 변경. 230px 왕의 충격파 + 다음 2회 벽 반사 충격파. 잠시 볼 크기 증가하며 안산 홈 보너스가 즉시 적용된다.',
  clutch:'CLUTCH: 왕의 민심 폭발. 회복과 충돌 공격 강화.'},
 
 {id:'youngwoong',name:'미시헌터 전영웅',short:'미시헌터 전영웅',hp:298,atk:15,speed:248,skillCd:0,ultCd:17,ultPower:90,passiveSkill:true,skillName:'헌터 사이트',ultName:'트리플 헌팅 그라운드',quote:'“조준은 끝났다.”',
  skill:'PASSIVE: 원형 스나이퍼 스코프가 별도의 볼처럼 경기장을 빠르게 이동하며 벽에 반사된다. 스코프가 상대 볼과 겹치면 확정 저격. 저격 피해 24, 내부 재장전 4.5초. 직접 발동하지 않는다.',
- ult:'맵의 랜덤한 위치에 12초 동안 유지되는 원형 지형 3개를 생성. 볼이 지형에 부딪히면 실제로 튕겨 이동 궤적이 바뀐다.',
+ ult:'맵의 랜덤한 위치에 12초 동안 유지되는 원형 지형 3개를 생성. 동시에 12초간 스나이퍼 스코프가 적에게 AUTO LOCK되어 상대를 따라다니며 확정 저격 기회를 만든다.',
  clutch:'CLUTCH: 조준선 이동속도 +25%, 확정 저격 피해 +6.'},
 {id:'gangseongeon',name:'동방 망령 강성언',short:'동방 망령 강성언',hp:290,atk:14,speed:268,skillCd:6.0,ultCd:18,ultPower:92,skillName:'유령보',ultName:'백귀야행',quote:'“잡았다고 생각했어?”',
  skill:'3초간 망령화. 망령화 중 첫 적 충돌을 완전히 무효화하고 상대를 통과하며 16 피해. PERFECT 시 4초 유지 및 통과 피해 22.',
@@ -367,7 +369,7 @@ function ensureAudio(){
      voicePools[kind]=Array.from({length:4},()=>{
        const a=new Audio(VOICE_DATA[kind]);
        a.preload='auto';
-       a.volume=kind==='mot'?.9:kind==='isaac'?.95:1;
+       a.volume=kind==='mot'?.63:kind==='isaac'?.95:1;
        a.load();
        return a;
      });
@@ -618,7 +620,7 @@ function playVoice(kind){
    try{
      a.pause();
      a.muted=false;
-     a.volume=kind==='mot'?.9:kind==='isaac'?.95:1;
+     a.volume=kind==='mot'?.63:kind==='isaac'?.95:1;
 
      const seekAndPlay=()=>{
        try{
@@ -681,6 +683,24 @@ function chooseArena(){
  const r=Math.random();arena=r<.12?'ansan':r<.24?'ilsan':'neutral';
  $('arenaBadge').textContent=arena==='ansan'?'안산 홈그라운드':arena==='ilsan'?'일산 홈그라운드':'중립 경기장';
 }
+function forceKingArena(p,field){
+ arena=field;
+ ambientTimer=0;
+ const isAnsan=field==='ansan';
+ const label=isAnsan?'안산 홈그라운드':'일산 홈그라운드';
+ $('arenaBadge').textContent=label;
+ $('arenaBadge').classList.remove('field-flash');
+ void $('arenaBadge').offsetWidth;
+ $('arenaBadge').classList.add('field-flash');
+
+ const kingName=isAnsan?'안산의 왕':'일산의 왕';
+ const color=isAnsan?'#77ffb6':'#70ddff';
+ cutin(kingName,'HOME FIELD TAKEOVER',label,color);
+ txt(p.x,p.y-62,isAnsan?'ANSAN FIELD':'ILSAN FIELD',true,color);
+ flash=.16;shake=Math.max(shake,10);
+ ring(p.x,p.y,210,.52,6,color);
+ log(`🏟️ <b>${p.short||shownName(p)}</b> — 경기장을 <b>${label}</b>로 변경`);
+}
 function rollWalls(){
  const pool=['normal','accel','twist','shock','seal'];
  walls={top:pool[Math.floor(Math.random()*pool.length)],right:pool[Math.floor(Math.random()*pool.length)],bottom:pool[Math.floor(Math.random()*pool.length)],left:pool[Math.floor(Math.random()*pool.length)]};
@@ -691,7 +711,7 @@ function makePlayer(c,slot){
   skillLeft:0,ultLeft:c.ultCd,shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,
   attackDebuff:0,attackDebuffTime:0,hitFlash:0,counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
   clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
-  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,phaseTime:0,phaseReady:false,phaseDamage:16,ghostUltBonus:false
+  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,autoAimTime:0,autoAimTarget:null,gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,phaseTime:0,phaseReady:false,phaseDamage:16,ghostUltBonus:false
  }
 }
 function resetBattle(){
@@ -707,7 +727,7 @@ function updateSide(){
  $('p1SideInfo').innerHTML=skillHtml(p1,'Q');$('p2SideInfo').innerHTML=skillHtml(p2,'O');
 }
 function statusTags(p){
- const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='awakened'&&p.awakenRushWindup>0)a.push('RUSH CHARGE');if(p.id==='awakened'&&p.awakenRushTime>0)a.push('LIMIT RUSH');if(p.knockbackTime>0)a.push(`KNOCKBACK ${p.knockbackTime.toFixed(1)}s`);if(p.id==='youngwoong')a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);if(p.id==='gangseongeon'&&p.phaseTime>0)a.push(p.phaseReady?`PHASE ${p.phaseTime.toFixed(1)}s`:'PHASE USED');if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
+ const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='awakened'&&p.awakenRushWindup>0)a.push('RUSH CHARGE');if(p.id==='awakened'&&p.awakenRushTime>0)a.push('LIMIT RUSH');if(p.knockbackTime>0)a.push(`KNOCKBACK ${p.knockbackTime.toFixed(1)}s`);if(p.id==='youngwoong'){if(p.autoAimTime>0)a.push(`AUTO AIM ${p.autoAimTime.toFixed(1)}s`);a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);}if(p.id==='gangseongeon'&&p.phaseTime>0)a.push(p.phaseReady?`PHASE ${p.phaseTime.toFixed(1)}s`:'PHASE USED');if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
  if(p.awakenStage>0)a.push(`각성 ${p.awakenStage}단계`);if(p.buffTime>0)a.push('BUFF');if(p.defTime>0)a.push('DEF');
  return a.map(x=>`<span class="status-tag">${x}</span>`).join('')
 }
@@ -860,12 +880,18 @@ function executeUlt(p,scale=1,fromClash=false){
    cutin(`${p.slot}P · ${shownName(p)}`,'추격 개시','나 홀로 선 왕','#d7d9ff');
    break;
   case 'hyojun':
+   forceKingArena(p,'ilsan');
    p.wallPulse=6;p.wallPulseDamage=24*scale;p.wallPulseRadius=190;p.buffSpeed=.12;p.buffTime=Math.max(p.buffTime,6);break;
   case 'chang':
+   forceKingArena(p,'ansan');
    if(Math.hypot(p.x-e.x,p.y-e.y)<=230)damage(e,54*scale,p,'왕의 판결 궁극기');
    p.wallPulse=999;p.wallPulseCharges=2;p.wallPulseDamage=22*scale;p.wallPulseRadius=170;p.r=31;p.sizeTime=5;break;
   case 'youngwoong':
-   spawnHunterTerrain(p,3,12);break;
+   spawnHunterTerrain(p,3,12);
+   p.autoAimTime=12;p.autoAimTarget=e;p.scanLatched=false;
+   cutin(`${p.slot}P · ${shownName(p)}`,'AUTO AIM','12초 타겟 고정','#ff4e64');
+   txt(p.x,p.y-52,'AUTO LOCK',true,'#ff98a7');
+   break;
   case 'gangseongeon':
    spawnSpectralOrbs(p,p.ghostUltBonus?9:7,7,false);
    p.ghostUltBonus=false;
@@ -1260,15 +1286,31 @@ function moveSniperScope(p,dt){
 }
 function updateSniperPassive(p,dt){
  if(!p||p.alive===false||p.id!=='youngwoong')return;
- moveSniperScope(p,dt);
  p.scanShotCd=Math.max(0,(p.scanShotCd||0)-dt);
+ p.scopeFlash=Math.max(0,(p.scopeFlash||0)-dt);
  const e=enemy(p);
+
+ if(p.autoAimTime>0){
+   p.autoAimTime=Math.max(0,p.autoAimTime-dt);
+   p.autoAimTarget=e;
+   // Ultimate buff: the scope is hard-locked to the enemy ball.
+   p.scanX=e.x;p.scanY=e.y;
+   // Allow another guaranteed shot as soon as reload completes.
+   if(p.scanShotCd<=0)p.scanLatched=false;
+   if(p.autoAimTime<=0){
+     p.autoAimTarget=null;
+     const a=rand(0,TAU);p.scanVX=Math.cos(a)*430;p.scanVY=Math.sin(a)*430;
+   }
+ }else{
+   moveSniperScope(p,dt);
+ }
+
  const overlap=Math.hypot(p.scanX-e.x,p.scanY-e.y)<=(p.scanR||30)+e.r*.72;
  if(overlap&&!p.scanLatched&&p.scanShotCd<=0&&!p.titleBroken){
    p.scanLatched=true;p.scanShotCd=4.5;p.scopeFlash=.28;
    const shotDamage=24+(p.clutchActive>0?6:0);
    sniperShots.push({owner:p,sx:p.scanX,sy:p.scanY,x:e.x,y:e.y,life:.30,maxLife:.30});
-   cutin(`${p.slot}P · ${shownName(p)}`,'LOCK ON','확정 저격','#ff6262');
+   cutin(`${p.slot}P · ${shownName(p)}`,p.autoAimTime>0?'AUTO LOCK':'LOCK ON','확정 저격','#ff6262');
    ring(e.x,e.y,82,.30,3,'#ff5a5a');burst(e.x,e.y,18,'#ff7575',1.1);flash=.08;shake=7;
    sniperGunshot();damage(e,shotDamage,p,'확정 저격');
  }else if(!overlap){p.scanLatched=false}
@@ -1349,7 +1391,7 @@ function makeTeamPlayer(c,team,index,n){
    shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,attackDebuff:0,attackDebuffTime:0,
    counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
    sizeTime:0,clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,
-   scanX:left?W()*.24:W()*.76,scanY:y*.72+H()*.12,scanVX:left?345:-345,scanVY:(index%2===0?225:-235),scanR:27,scanShotCd:0,scanLatched:false,scopeFlash:0,
+   scanX:left?W()*.24:W()*.76,scanY:y*.72+H()*.12,scanVX:left?345:-345,scanVY:(index%2===0?225:-235),scanR:27,scanShotCd:0,scanLatched:false,scopeFlash:0,autoAimTime:0,autoAimTarget:null,
    gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,phaseTime:0,phaseReady:false,phaseDamage:16,ghostUltBonus:false,awakenStage:0,postUltDamage:0,postUltTimer:0
  };
 }
@@ -1410,7 +1452,7 @@ function teamUseSkill(p){
    case 'yookyung':teamFire(p,ang,385,26,'pizza',2.8,10);break;
    case 'gwak':p.defReduce=.35;p.defTime=4;break;
    case 'hyojun':p.wallPulse=3.5;p.wallPulseDamage=16;p.wallPulseRadius=135;break;
-   case 'chang':teamHeal(p,24);p.buffAtk=5;p.buffTime=3;break;
+   case 'chang':teamHeal(p,(arena==='ansan'&&!p.titleBroken)?32:24);p.buffAtk=5;p.buffTime=3;break;
    case 'gangseongeon':p.phaseTime=3;p.phaseReady=true;p.phaseDamage=16;p.buffSpeed=.12;p.buffTime=3;break;
  }
 }
@@ -1446,12 +1488,15 @@ function teamUseUlt(p){
    case 'gwak':
      p.shield+=50;p.buffAtk=9;p.buffSpeed=.15;p.buffTime=6;p.r=31;p.sizeTime=6;p.gwakChargeTime=6;p.gwakChargeHitReady=true;break;
    case 'hyojun':
+     forceKingArena(p,'ilsan');
      p.wallPulse=6;p.wallPulseDamage=22;p.wallPulseRadius=185;p.buffSpeed=.12;p.buffTime=6;break;
    case 'chang':
+     forceKingArena(p,'ansan');
      teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<230).forEach(e=>teamDamage(e,46,p,'왕의 판결'));
      p.wallPulse=999;p.wallPulseCharges=2;p.wallPulseDamage=20;p.wallPulseRadius=165;p.r=28;p.sizeTime=5;break;
    case 'youngwoong':
-     teamSpawnTerrain(p,3,12);break;
+     teamSpawnTerrain(p,3,12);p.autoAimTime=12;p.autoAimTarget=teamTarget(p);p.scanLatched=false;
+     txt(p.x,p.y-42,'AUTO LOCK',true,'#ff98a7');break;
    case 'gangseongeon':
      spawnSpectralOrbs(p,p.ghostUltBonus?9:7,7,true);p.ghostUltBonus=false;break;
  }
@@ -1482,7 +1527,8 @@ function teamBounce(p,side){
  if(type==='seal'){p.skillLeft+=.7;p.ultLeft+=.35}
  if(type==='shock'){teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<145).forEach(e=>teamDamage(e,9,p,'충격 벽'))}
  if(p.wallPulse>0){
-   teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<=p.wallPulseRadius).forEach(e=>teamDamage(e,p.wallPulseDamage,p,'벽 충격파'));
+   const home=(p.id==='hyojun'&&arena==='ilsan'&&!p.titleBroken)?1.2:1;
+   teamEnemies(p).filter(e=>Math.hypot(p.x-e.x,p.y-e.y)<=p.wallPulseRadius).forEach(e=>teamDamage(e,p.wallPulseDamage*home,p,'벽 충격파'));
    if(p.wallPulseCharges){p.wallPulseCharges--;if(p.wallPulseCharges<=0)p.wallPulse=0}
  }
 }
@@ -1513,7 +1559,7 @@ function teamTickPlayer(p,dt){
    while(diff>Math.PI)diff-=TAU;while(diff<-Math.PI)diff+=TAU;const step=clamp(diff,-2.4*dt,2.4*dt);cur+=step;
    const sp=Math.hypot(p.vx,p.vy);p.vx=Math.cos(cur)*sp;p.vy=Math.sin(cur)*sp;
  }
- let accel=Math.min(2.05,1+gameTime*.0055),sp=p.speed*accel*(1+(p.buffSpeed||0)+(p.wallBoost||0));
+ let accel=Math.min(2.05,1+gameTime*.0055),sp=p.speed*accel*(1+(p.buffSpeed||0)+(p.wallBoost||0))*homeBonus(p);
  [p.vx,p.vy]=norm(p.vx,p.vy,sp);p.x+=p.vx*dt;p.y+=p.vy*dt;teamBounds(p);
  for(const c of teamTerrains){
    const dx=p.x-c.x,dy=p.y-c.y,d=Math.hypot(dx,dy)||.001,min=p.r+c.r;if(d<min){const nx=dx/d,ny=dy/d;p.x=c.x+nx*(min+.2);p.y=c.y+ny*(min+.2);const dot=p.vx*nx+p.vy*ny;if(dot<0){p.vx-=2*dot*nx;p.vy-=2*dot*ny;beep('wall')}}
@@ -1521,21 +1567,38 @@ function teamTickPlayer(p,dt){
 }
 function teamSniper(p,dt){
  if(!p.alive||p.id!=='youngwoong')return;
- const speed=410*(p.clutchActive>0?1.22:1);
- [p.scanVX,p.scanVY]=norm(p.scanVX||320,p.scanVY||215,speed);
- p.scanX+=p.scanVX*dt;p.scanY+=p.scanVY*dt;
- const r=p.scanR||27;
- if(p.scanX<r){p.scanX=r;p.scanVX=Math.abs(p.scanVX)}
- if(p.scanX>W()-r){p.scanX=W()-r;p.scanVX=-Math.abs(p.scanVX)}
- if(p.scanY<r){p.scanY=r;p.scanVY=Math.abs(p.scanVY)}
- if(p.scanY>H()-r){p.scanY=H()-r;p.scanVY=-Math.abs(p.scanVY)}
  p.scopeFlash=Math.max(0,(p.scopeFlash||0)-dt);
  p.scanShotCd=Math.max(0,p.scanShotCd-dt);
+
+ let locked=null;
+ if(p.autoAimTime>0){
+   p.autoAimTime=Math.max(0,p.autoAimTime-dt);
+   if(!p.autoAimTarget||!p.autoAimTarget.alive||p.autoAimTarget.team===p.team){
+     p.autoAimTarget=teamTarget(p);
+   }
+   locked=p.autoAimTarget;
+   if(locked){p.scanX=locked.x;p.scanY=locked.y}
+   if(p.scanShotCd<=0)p.scanLatched=false;
+   if(p.autoAimTime<=0){
+     p.autoAimTarget=null;
+     const a=rand(0,TAU);p.scanVX=Math.cos(a)*410;p.scanVY=Math.sin(a)*410;
+   }
+ }else{
+   const speed=410*(p.clutchActive>0?1.22:1);
+   [p.scanVX,p.scanVY]=norm(p.scanVX||320,p.scanVY||215,speed);
+   p.scanX+=p.scanVX*dt;p.scanY+=p.scanVY*dt;
+   const r=p.scanR||27;
+   if(p.scanX<r){p.scanX=r;p.scanVX=Math.abs(p.scanVX)}
+   if(p.scanX>W()-r){p.scanX=W()-r;p.scanVX=-Math.abs(p.scanVX)}
+   if(p.scanY<r){p.scanY=r;p.scanVY=Math.abs(p.scanVY)}
+   if(p.scanY>H()-r){p.scanY=H()-r;p.scanVY=-Math.abs(p.scanVY)}
+ }
+
  if(p.titleBroken){p.scanLatched=false;return}
- const hits=teamEnemies(p).filter(e=>Math.hypot(p.scanX-e.x,p.scanY-e.y)<=(p.scanR||27)+e.r*.72);
+ const hits=locked?[locked]:teamEnemies(p).filter(e=>Math.hypot(p.scanX-e.x,p.scanY-e.y)<=(p.scanR||27)+e.r*.72);
  if(hits.length&&!p.scanLatched&&p.scanShotCd<=0){
    p.scanLatched=true;p.scanShotCd=4.5;p.scopeFlash=.28;
-   const t=hits.sort((a,b)=>a.hp-b.hp)[0];
+   const t=locked||hits.sort((a,b)=>a.hp-b.hp)[0];
    sniperShots.push({owner:p,sx:p.scanX,sy:p.scanY,x:t.x,y:t.y,life:.28,maxLife:.28});
    sniperGunshot();
    teamDamage(t,24+(p.clutchActive>0?6:0),p,'확정 저격');
@@ -1611,7 +1674,7 @@ function drawTeamBattle(){
    ctx.save();const rr=p.scanR||27,ready=p.scanShotCd<=0&&!p.titleBroken;
    const color=p.titleBroken?'rgba(150,150,150,.42)':ready?'rgba(255,70,70,.86)':'rgba(255,125,125,.40)';
    ctx.translate(p.scanX,p.scanY);ctx.strokeStyle=p.scopeFlash>0?'#fff':color;ctx.lineWidth=p.scopeFlash>0?3.5:2;ctx.shadowBlur=ready?13:5;ctx.shadowColor=color;
-   ctx.beginPath();ctx.arc(0,0,rr,0,TAU);ctx.stroke();ctx.globalAlpha=.55;ctx.beginPath();ctx.arc(0,0,rr*.6,0,TAU);ctx.stroke();ctx.globalAlpha=1;
+   ctx.beginPath();ctx.arc(0,0,rr,0,TAU);ctx.stroke();if(p.autoAimTime>0){ctx.globalAlpha=.75;ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,rr+8+Math.sin(performance.now()/75)*2,0,TAU);ctx.stroke()}ctx.globalAlpha=.55;ctx.beginPath();ctx.arc(0,0,rr*.6,0,TAU);ctx.stroke();ctx.globalAlpha=1;
    ctx.beginPath();ctx.moveTo(-rr-7,0);ctx.lineTo(-6,0);ctx.moveTo(6,0);ctx.lineTo(rr+7,0);ctx.moveTo(0,-rr-7);ctx.lineTo(0,-6);ctx.moveTo(0,6);ctx.lineTo(0,rr+7);ctx.stroke();
    ctx.restore()
  }
@@ -1808,6 +1871,7 @@ function drawHunterSystems(){
    ctx.strokeStyle=p.scopeFlash>0?'#fff':color;ctx.lineWidth=p.scopeFlash>0?4:2.2;
    ctx.shadowBlur=ready?18:7;ctx.shadowColor=color;
    ctx.beginPath();ctx.arc(0,0,r,0,TAU);ctx.stroke();
+   if(p.autoAimTime>0){ctx.globalAlpha=.8;ctx.lineWidth=3.2;ctx.beginPath();ctx.arc(0,0,r+9+Math.sin(performance.now()/70)*3,0,TAU);ctx.stroke()}
    ctx.globalAlpha=.55;ctx.beginPath();ctx.arc(0,0,r*.63,0,TAU);ctx.stroke();ctx.globalAlpha=1;
    ctx.lineWidth=1.7;ctx.beginPath();
    ctx.moveTo(-r-9,0);ctx.lineTo(-7,0);ctx.moveTo(7,0);ctx.lineTo(r+9,0);
@@ -1815,7 +1879,7 @@ function drawHunterSystems(){
    ctx.lineWidth=1.3;
    for(let i=0;i<8;i++){const a=TAU*i/8,ri=r-6,ro=r+3;ctx.beginPath();ctx.moveTo(Math.cos(a)*ri,Math.sin(a)*ri);ctx.lineTo(Math.cos(a)*ro,Math.sin(a)*ro);ctx.stroke()}
    ctx.shadowBlur=0;ctx.fillStyle=color;ctx.font='900 9px system-ui';ctx.textAlign='center';
-   ctx.fillText(disabled?'SCOPE JAMMED':ready?'LOCK READY':`RELOAD ${p.scanShotCd.toFixed(1)}`,0,r+18);
+   ctx.fillText(disabled?'SCOPE JAMMED':p.autoAimTime>0?`AUTO LOCK ${p.autoAimTime.toFixed(1)}s`:ready?'LOCK READY':`RELOAD ${p.scanShotCd.toFixed(1)}`,0,r+18);
    ctx.restore();
  }
  for(const s of sniperShots){
