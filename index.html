@@ -140,7 +140,7 @@ canvas{display:block;width:100%;height:670px}
   <div class="setup">
     <h2>만마보이즈 배틀 — TEAM BATTLE</h2>
     <div class="hint">1v1은 직접 조작/AI 모두 지원하고, 2v2~4v4 팀전은 AI 시뮬레이션 전용입니다.</div>
-    <div style="font-size:11px;color:#cbbcff;font-weight:900;margin-bottom:8px">Ver. 1.3.0 · 🎓 DEGREE UPDATE · 👻 강성언 · 정민석 참전</div><div class="mode-select-row">
+    <div style="font-size:11px;color:#cbbcff;font-weight:900;margin-bottom:8px">Ver. 1.3.1 · 🎓 TENURE EXECUTION · 👻 강성언 · 정민석 참전</div><div class="mode-select-row">
       <label for="battleModeSelect">전투 모드</label>
       <select id="battleModeSelect">
         <option value="1">1 vs 1</option>
@@ -175,7 +175,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.3.0 — DEGREE UPDATE</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.3.1 — TENURE EXECUTION</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -291,7 +291,7 @@ const chars=[
 {id:'minseok',name:'학사 정민석',short:'학사 정민석',hp:300,atk:15,speed:252,skillCd:5.2,ultCd:11.5,ultPower:86,skillName:'대쉬',ultName:'학위 진화',quote:'“이제 연구실이 내 집이다.”',
  passive:'연구 실적: 벽에 4번 튕길 때마다 궁극기 쿨타임이 1.2초 감소한다.',
  skill:'진행 방향으로 짧게 고속 대쉬. 대쉬 중 적과 충돌하면 평타와 별개로 추가 18 피해. PERFECT 시 추가 피해 24.',
- ult:'사용할 때마다 학위 스택이 1 증가하며 이명과 기본 능력치가 영구 변화한다. 학사 → 노예(능력치 감소) → 석사 → 박사 → 교수.',
+ ult:'사용할 때마다 학위 스택이 증가해 학사 → 노예 → 석사 → 박사 → 교수로 진화. 교수 완성 후 궁극기는 정년보장으로 변경되어 7초 TENURE 상태에 돌입하며, 대쉬 적중 시 논문 수정 스택을 부여한다. 논문 수정 3스택은 즉사 판정.',
  clutch:'CLUTCH: 대쉬 쿨타임 즉시 초기화 + 궁극기 쿨타임 3초 감소.'}
 ];
 
@@ -746,7 +746,7 @@ function makePlayer(c,slot){
   skillLeft:0,ultLeft:c.ultCd,shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,
   attackDebuff:0,attackDebuffTime:0,hitFlash:0,counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
   clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
-  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,autoAimTime:0,autoAimTarget:null,gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,phaseTime:0,phaseReady:false,phaseDamage:16,ghostUltBonus:false,degreeStage:0,degreeStacks:0,degreeBaseHp:c.hp,degreeBaseAtk:c.atk,degreeBaseSpeed:c.speed,researchBounces:0,dashTime:0,dashHitReady:false,dashDamage:18
+  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,autoAimTime:0,autoAimTarget:null,gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,phaseTime:0,phaseReady:false,phaseDamage:16,ghostUltBonus:false,degreeStage:0,degreeStacks:0,degreeBaseHp:c.hp,degreeBaseAtk:c.atk,degreeBaseSpeed:c.speed,researchBounces:0,dashTime:0,dashHitReady:false,dashDamage:18,tenureTime:0,revisionStacks:0,revisionTarget:null
  }
 }
 function resetBattle(){
@@ -762,7 +762,7 @@ function updateSide(){
  $('p1SideInfo').innerHTML=skillHtml(p1,'Q');$('p2SideInfo').innerHTML=skillHtml(p2,'O');
 }
 function statusTags(p){
- const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='awakened'&&p.awakenRushWindup>0)a.push('RUSH CHARGE');if(p.id==='awakened'&&p.awakenRushTime>0)a.push('LIMIT RUSH');if(p.knockbackTime>0)a.push(`KNOCKBACK ${p.knockbackTime.toFixed(1)}s`);if(p.id==='youngwoong'){if(p.autoAimTime>0)a.push(`AUTO AIM ${p.autoAimTime.toFixed(1)}s`);a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);}if(p.id==='gangseongeon'&&p.phaseTime>0)a.push(p.phaseReady?`PHASE ${p.phaseTime.toFixed(1)}s`:'PHASE USED');if(p.id==='minseok'){a.push(`학위 ${p.degreeStage||0}/4`);if(p.dashTime>0)a.push('DASH');}if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
+ const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='awakened'&&p.awakenRushWindup>0)a.push('RUSH CHARGE');if(p.id==='awakened'&&p.awakenRushTime>0)a.push('LIMIT RUSH');if(p.knockbackTime>0)a.push(`KNOCKBACK ${p.knockbackTime.toFixed(1)}s`);if(p.id==='youngwoong'){if(p.autoAimTime>0)a.push(`AUTO AIM ${p.autoAimTime.toFixed(1)}s`);a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);}if(p.id==='gangseongeon'&&p.phaseTime>0)a.push(p.phaseReady?`PHASE ${p.phaseTime.toFixed(1)}s`:'PHASE USED');if(p.id==='minseok'){a.push(`학위 ${p.degreeStage||0}/4`);if(p.tenureTime>0)a.push(`TENURE ${p.tenureTime.toFixed(1)}s`);if(p.revisionStacks>0)a.push(`REVISION ${p.revisionStacks}/3`);if(p.dashTime>0)a.push('DASH');}if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
  if(p.awakenStage>0)a.push(`각성 ${p.awakenStage}단계`);if(p.buffTime>0)a.push('BUFF');if(p.defTime>0)a.push('DEF');
  return a.map(x=>`<span class="status-tag">${x}</span>`).join('')
 }
@@ -824,6 +824,63 @@ function minseokResearchBounce(p){
    beep('near');
  }
 }
+
+function activateTenure(p,isTeam=false){
+ if(!p||p.id!=='minseok')return;
+ p.tenureTime=7;
+ p.revisionStacks=0;
+ p.revisionTarget=null;
+ p.buffAtk=Math.max(p.buffAtk||0,Math.max(1,p.atk*.35));
+ p.buffSpeed=Math.max(p.buffSpeed||0,.20);
+ p.buffTime=Math.max(p.buffTime||0,7);
+ txt(p.x,p.y-58,'TENURE ACQUIRED',true,'#ffe28a');
+ ring(p.x,p.y,190,.60,7,'#ffe28a');
+ cutin('교수 정민석','정년보장','REVISION 3 = EXECUTION','#ffe28a');
+ log(`🎓 <b>교수 정민석</b> — 정년보장 발동 / 논문 수정 3스택 즉사`);
+}
+function minseokRevisionHit(p,target,isTeam=false){
+ if(!p||!target||p.id!=='minseok'||p.tenureTime<=0||target.alive===false)return;
+ if(p.revisionTarget!==target){
+   p.revisionTarget=target;
+   p.revisionStacks=0;
+ }
+ p.revisionStacks=(p.revisionStacks||0)+1;
+ const stacks=p.revisionStacks;
+ txt(target.x,target.y-56,`REVISION ${stacks}/3`,true,stacks>=3?'#ff6262':'#ffe7a0');
+ ring(target.x,target.y,62+stacks*9,.30,3,stacks>=3?'#ff4e4e':'#ffe08a');
+ log(`📄 <b>${target.short||shownName(target)}</b> 논문 수정 ${stacks}/3`);
+
+ if(stacks>=3){
+   cutin('교수 정민석','REJECT','다시 써오세요.','#ff4e4e');
+   txt(target.x,target.y-72,'REJECT',true,'#ff4e4e');
+   flash=.25;shake=Math.max(shake,22);
+   // True execution: bypass shield, defense and damage reduction completely.
+   target.shield=0;
+   target.hp=0;
+   target.alive=false;
+   burst(target.x,target.y,isTeam?30:38,'#ff4e4e',1.5);
+   log(`☠️ <b>${target.short||shownName(target)}</b> — 논문 심사 탈락 (즉사)`);
+   if(isTeam){
+     checkTeamWinner();
+   }else{
+     running=false;
+     finish(p,true);
+   }
+   p.revisionStacks=0;
+   p.revisionTarget=null;
+ }
+}
+function updateTenure(p,dt){
+ if(!p||p.id!=='minseok'||p.alive===false)return;
+ if(p.tenureTime>0){
+   p.tenureTime=Math.max(0,p.tenureTime-dt);
+   if(p.tenureTime<=0){
+     p.revisionStacks=0;
+     p.revisionTarget=null;
+   }
+ }
+}
+
 function updateMinseokDash(p,dt,isTeam=false){
  if(!p||p.alive===false||p.id!=='minseok'||p.dashTime<=0)return false;
  p.dashTime=Math.max(0,p.dashTime-dt);
@@ -897,7 +954,7 @@ function useSkill(p){
   case 'hyojun':p.wallPulse=perf?4.5:3.5;p.wallPulseDamage=perf?24:18;p.wallPulseRadius=perf?170:140;break;
   case 'chang':heal(p,(arena==='ansan'&&!p.titleBroken?16:12)*mul);p.buffAtk=5*mul;p.buffTime=Math.max(p.buffTime,perf?4:3);break;
   case 'gangseongeon':p.phaseTime=perf?4:3;p.phaseReady=true;p.phaseDamage=perf?22:16;p.buffSpeed=.12*mul;p.buffTime=Math.max(p.buffTime,p.phaseTime);txt(p.x,p.y-48,'PHASE',true,'#bba8ff');break;
-  case 'minseok':p.dashTime=perf?.34:.28;p.dashHitReady=true;p.dashDamage=perf?24:18;[p.vx,p.vy]=norm(p.vx,p.vy,880);txt(p.x,p.y-44,'DASH!',true,'#9fdcff');break;
+  case 'minseok':p.dashTime=perf?.34:.28;p.dashHitReady=true;p.dashDamage=p.tenureTime>0?(perf?34:28):(perf?24:18);if(p.tenureTime>0)p.skillLeft=Math.min(p.skillLeft,p.skillCd*.5);[p.vx,p.vy]=norm(p.vx,p.vy,880);txt(p.x,p.y-44,p.tenureTime>0?'TENURE DASH!':'DASH!',true,p.tenureTime>0?'#ffe28a':'#9fdcff');break;
  }
 }
 function requestUlt(p){
@@ -990,7 +1047,7 @@ function executeUlt(p,scale=1,fromClash=false){
    break;
   case 'minseok':
    if(p.degreeStage<4)applyMinseokDegree(p,p.degreeStage+1,false);
-   else{p.buffAtk=Math.max(p.buffAtk,4);p.buffSpeed=Math.max(p.buffSpeed,.10);p.buffTime=Math.max(p.buffTime,5);txt(p.x,p.y-48,'교수의 권위',true,'#ffe28a')}
+   else activateTenure(p,false)
    break
  }
 }
@@ -1036,7 +1093,8 @@ function stagedAwaken(p){
 }
 function tickPlayer(p,dt){
  if(p.alive===false)return;
- updatePhantomState(p,dt);p.skillLeft=Math.max(0,p.skillLeft-dt);
+ updatePhantomState(p,dt);
+ updateTenure(p,dt);p.skillLeft=Math.max(0,p.skillLeft-dt);
  const ultRate=currentEvent&&currentEvent.id==='ultimate'?2:1;p.ultLeft=Math.max(0,p.ultLeft-dt*ultRate);
  if(p.ultLeft<=0)p.aiUltReadyAge=(p.aiUltReadyAge||0)+dt;else p.aiUltReadyAge=0;
  p.hitFlash=Math.max(0,p.hitFlash-dt);p.skillLockedFlash=Math.max(0,p.skillLockedFlash-dt);
@@ -1071,8 +1129,8 @@ function collide(){
   const a1=p1.vx*nx+p1.vy*ny,a2=p2.vx*nx+p2.vy*ny;p1.vx+=(a2-a1)*nx;p1.vy+=(a2-a1)*ny;p2.vx+=(a1-a2)*nx;p2.vy+=(a1-a2)*ny;
   if(p1.id==='awakened'&&p1.awakenRushTime>0&&p1.awakenRushHitReady&&p2.alive)resolveAwakenedRushHit(p1,p2,false);
   if(p2.id==='awakened'&&p2.awakenRushTime>0&&p2.awakenRushHitReady&&p1.alive)resolveAwakenedRushHit(p2,p1,false);
-  if(p1.id==='minseok'&&p1.dashTime>0&&p1.dashHitReady&&p2.alive){damage(p2,p1.dashDamage,p1,'대쉬 추가타');p1.dashHitReady=false;p1.dashTime=0;ring(p2.x,p2.y,75,.24,4,'#9fdcff')}
-  if(p2.id==='minseok'&&p2.dashTime>0&&p2.dashHitReady&&p1.alive){damage(p1,p2.dashDamage,p2,'대쉬 추가타');p2.dashHitReady=false;p2.dashTime=0;ring(p1.x,p1.y,75,.24,4,'#9fdcff')}
+  if(p1.id==='minseok'&&p1.dashTime>0&&p1.dashHitReady&&p2.alive){damage(p2,p1.dashDamage,p1,'대쉬 추가타');if(p2.alive)minseokRevisionHit(p1,p2,false);p1.dashHitReady=false;p1.dashTime=0;ring(p2.x,p2.y,75,.24,4,p1.tenureTime>0?'#ffe28a':'#9fdcff')}
+  if(p2.id==='minseok'&&p2.dashTime>0&&p2.dashHitReady&&p1.alive){damage(p1,p2.dashDamage,p2,'대쉬 추가타');if(p1.alive)minseokRevisionHit(p2,p1,false);p2.dashHitReady=false;p2.dashTime=0;ring(p1.x,p1.y,75,.24,4,p2.tenureTime>0?'#ffe28a':'#9fdcff')}
   if(collisionCd<=0){
    const v1=Math.hypot(p1.vx,p1.vy),v2=Math.hypot(p2.vx,p2.vy),dot=(p1.vx*p2.vx+p1.vy*p2.vy)/(v1*v2||1),headOn=dot<-.72;
    let eventMul=currentEvent&&currentEvent.id==='lawless'?1.35:1;
@@ -1492,7 +1550,7 @@ function makeTeamPlayer(c,team,index,n){
    counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
    sizeTime:0,clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,
    scanX:left?W()*.24:W()*.76,scanY:y*.72+H()*.12,scanVX:left?345:-345,scanVY:(index%2===0?225:-235),scanR:27,scanShotCd:0,scanLatched:false,scopeFlash:0,autoAimTime:0,autoAimTarget:null,
-   gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,phaseTime:0,phaseReady:false,phaseDamage:16,ghostUltBonus:false,degreeStage:0,degreeStacks:0,degreeBaseHp:c.hp,degreeBaseAtk:c.atk,degreeBaseSpeed:c.speed,researchBounces:0,dashTime:0,dashHitReady:false,dashDamage:18,awakenStage:0,postUltDamage:0,postUltTimer:0
+   gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,phaseTime:0,phaseReady:false,phaseDamage:16,ghostUltBonus:false,degreeStage:0,degreeStacks:0,degreeBaseHp:c.hp,degreeBaseAtk:c.atk,degreeBaseSpeed:c.speed,researchBounces:0,dashTime:0,dashHitReady:false,dashDamage:18,tenureTime:0,revisionStacks:0,revisionTarget:null,awakenStage:0,postUltDamage:0,postUltTimer:0
  };
 }
 function teamEnemies(p){return teamPlayers.filter(x=>x.alive&&x.team!==p.team)}
@@ -1554,7 +1612,7 @@ function teamUseSkill(p){
    case 'hyojun':p.wallPulse=3.5;p.wallPulseDamage=16;p.wallPulseRadius=135;break;
    case 'chang':teamHeal(p,(arena==='ansan'&&!p.titleBroken)?16:12);p.buffAtk=5;p.buffTime=3;break;
    case 'gangseongeon':p.phaseTime=3;p.phaseReady=true;p.phaseDamage=16;p.buffSpeed=.12;p.buffTime=3;break;
-   case 'minseok':p.dashTime=.28;p.dashHitReady=true;p.dashDamage=18;[p.vx,p.vy]=norm(p.vx,p.vy,820);break;
+   case 'minseok':p.dashTime=.28;p.dashHitReady=true;p.dashDamage=p.tenureTime>0?28:18;if(p.tenureTime>0)p.skillLeft=Math.min(p.skillLeft,p.skillCd*.5);[p.vx,p.vy]=norm(p.vx,p.vy,820);break;
  }
 }
 function teamUseUlt(p){
@@ -1602,7 +1660,7 @@ function teamUseUlt(p){
      spawnSpectralOrbs(p,p.ghostUltBonus?9:7,7,true);p.ghostUltBonus=false;break;
    case 'minseok':
      if(p.degreeStage<4)applyMinseokDegree(p,p.degreeStage+1,true);
-     else{p.buffAtk=Math.max(p.buffAtk,4);p.buffSpeed=Math.max(p.buffSpeed,.10);p.buffTime=Math.max(p.buffTime,5)}
+     else activateTenure(p,true)
      break;
  }
  log(`★★ <b>${p.short}</b> — ${p.ultName}`);
@@ -1647,6 +1705,7 @@ function teamBounds(p){
 function teamTickPlayer(p,dt){
  if(!p.alive)return;
  updatePhantomState(p,dt);
+ updateTenure(p,dt);
  p.hitCd=Math.max(0,p.hitCd-dt);p.skillLeft=Math.max(0,p.skillLeft-dt);p.ultLeft=Math.max(0,p.ultLeft-dt);
  if(p.ultLeft<=0)p.aiUltReadyAge+=dt;else p.aiUltReadyAge=0;
  if(p.buffTime>0){p.buffTime-=dt;if(p.buffTime<=0){p.buffAtk=0;p.buffSpeed=0}}
@@ -1732,8 +1791,8 @@ function teamCollisions(){
    const av=a.vx*nx+a.vy*ny,bv=b.vx*nx+b.vy*ny;a.vx+=(bv-av)*nx;a.vy+=(bv-av)*ny;b.vx+=(av-bv)*nx;b.vy+=(av-bv)*ny;
    if(a.team!==b.team&&a.id==='awakened'&&a.awakenRushTime>0&&a.awakenRushHitReady&&b.alive)resolveAwakenedRushHit(a,b,true);
    if(a.team!==b.team&&b.id==='awakened'&&b.awakenRushTime>0&&b.awakenRushHitReady&&a.alive)resolveAwakenedRushHit(b,a,true);
-   if(a.team!==b.team&&a.id==='minseok'&&a.dashTime>0&&a.dashHitReady&&b.alive){teamDamage(b,a.dashDamage,a,'대쉬 추가타');a.dashHitReady=false;a.dashTime=0}
-   if(a.team!==b.team&&b.id==='minseok'&&b.dashTime>0&&b.dashHitReady&&a.alive){teamDamage(a,b.dashDamage,b,'대쉬 추가타');b.dashHitReady=false;b.dashTime=0}
+   if(a.team!==b.team&&a.id==='minseok'&&a.dashTime>0&&a.dashHitReady&&b.alive){teamDamage(b,a.dashDamage,a,'대쉬 추가타');if(b.alive)minseokRevisionHit(a,b,true);a.dashHitReady=false;a.dashTime=0}
+   if(a.team!==b.team&&b.id==='minseok'&&b.dashTime>0&&b.dashHitReady&&a.alive){teamDamage(a,b.dashDamage,b,'대쉬 추가타');if(a.alive)minseokRevisionHit(b,a,true);b.dashHitReady=false;b.dashTime=0}
    if(a.team!==b.team&&a.hitCd<=0&&b.hitCd<=0){
      let da=a.atk+(a.buffAtk||0)+(a.id==='awakened'?a.awakenStage*2:0),db=b.atk+(b.buffAtk||0)+(b.id==='awakened'?b.awakenStage*2:0);
      if(a.attackDebuffTime>0)da*=1-a.attackDebuff;if(b.attackDebuffTime>0)db*=1-b.attackDebuff;
