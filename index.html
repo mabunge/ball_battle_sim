@@ -170,7 +170,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.0.3 — SNIPER SFX</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.0.4 — CLUTCH UI FIX</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -459,7 +459,7 @@ function makePlayer(c,slot){
  return {...c,slot,r:25,baseR:25,x:slot===1?W()*.28:W()*.72,y:H()*.58,vx,vy,maxHp:c.hp,hp:c.hp,
   skillLeft:0,ultLeft:c.ultCd,shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,
   attackDebuff:0,attackDebuffTime:0,hitFlash:0,counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
-  clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
+  clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
   bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,gwakChargeTime:0,gwakChargeHitReady:false
  }
 }
@@ -470,7 +470,7 @@ function resetBattle(){
  $('winner').classList.remove('show');$('start').textContent='전투 시작';$('log').innerHTML='<div>대결 준비 완료. 궁극기는 충전 중.</div>';
  updateSide();updateHud();
 }
-function skillHtml(p,key){const skillMeta=p.passiveSkill?'PASSIVE':`${p.skillCd}s`;return `<div class="skill-block"><div class="skill-head"><span>${key} · ${p.skillName}</span><span>${skillMeta}</span></div><div class="skill-body">${p.skill}</div></div><div class="skill-block"><div class="skill-head"><span>${p.slot===1?'W':'P'} · ${p.ultName}</span><span>${p.ultCd}s</span></div><div class="skill-body">${p.ult}</div></div><div class="skill-block"><div class="skill-head"><span>CLUTCH</span><span>100%</span></div><div class="skill-body">${p.clutch}</div></div>`}
+function skillHtml(p,key){const skillMeta=p.passiveSkill?'PASSIVE':`${p.skillCd}s`;return `<div class="skill-block"><div class="skill-head"><span>${key} · ${p.skillName}</span><span>${skillMeta}</span></div><div class="skill-body">${p.skill}</div></div><div class="skill-block"><div class="skill-head"><span>${p.slot===1?'W':'P'} · ${p.ultName}</span><span>${p.ultCd}s</span></div><div class="skill-body">${p.ult}</div></div><div class="skill-block"><div class="skill-head"><span>CLUTCH</span><span>100%</span></div><div class="skill-body">${p.clutchDesc||'CLUTCH 효과 정보 없음'}</div></div>`}
 function updateSide(){
  $('p1SideName').textContent=`1P · ${shownName(p1)}`;$('p2SideName').textContent=`2P · ${shownName(p2)}`;
  $('p1SideInfo').innerHTML=skillHtml(p1,'Q');$('p2SideInfo').innerHTML=skillHtml(p2,'O');
@@ -838,7 +838,7 @@ function makeTeamPlayer(c,team,index,n){
    skillLeft:0,ultLeft:c.ultCd,aiUltReadyAge:0,aiThink:rand(.12,.45),hitCd:0,
    shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,attackDebuff:0,attackDebuffTime:0,
    counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
-   sizeTime:0,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,
+   sizeTime:0,clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,
    scanX:left?W()*.24:W()*.76,scanY:y*.72+H()*.12,scanVX:left?345:-345,scanVY:(index%2===0?225:-235),scanR:27,scanShotCd:0,scanLatched:false,scopeFlash:0,
    gwakChargeTime:0,gwakChargeHitReady:false,awakenStage:0,postUltDamage:0,postUltTimer:0
  };
