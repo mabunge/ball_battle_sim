@@ -170,7 +170,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.0.2 — ISAAC TEXT FIX</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.0.3 — SNIPER SFX</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -375,6 +375,65 @@ function beep(type='hit'){
  const cfg={hit:[150,.045,.07],wall:[240,.03,.045],skill:[430,.08,.055],ult:[95,.18,.09],heal:[620,.09,.05],near:[760,.05,.035],event:[310,.2,.045],clash:[70,.35,.12],perfect:[900,.11,.06],pizza:[520,.07,.04]}[type]||[200,.05,.04];
  o.type=type==='clash'?'sawtooth':'sine';o.frequency.setValueAtTime(cfg[0],t);if(type==='hit')o.frequency.exponentialRampToValueAtTime(90,t+cfg[1]);
  g.gain.setValueAtTime(cfg[2],t);g.gain.exponentialRampToValueAtTime(.0001,t+cfg[1]);o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+cfg[1]+.02)
+}
+
+function sniperGunshot(){
+ try{
+   if(!audioCtx)return;
+   if(audioCtx.state==='suspended')audioCtx.resume();
+
+   const now=audioCtx.currentTime;
+
+   // 1) short noise crack
+   const len=Math.floor(audioCtx.sampleRate*.14);
+   const buffer=audioCtx.createBuffer(1,len,audioCtx.sampleRate);
+   const data=buffer.getChannelData(0);
+   for(let i=0;i<len;i++){
+     const env=Math.pow(1-i/len,4.2);
+     data[i]=(Math.random()*2-1)*env;
+   }
+   const noise=audioCtx.createBufferSource();
+   noise.buffer=buffer;
+   const hp=audioCtx.createBiquadFilter();
+   hp.type='highpass';hp.frequency.value=700;
+   const ng=audioCtx.createGain();
+   ng.gain.setValueAtTime(.42,now);
+   ng.gain.exponentialRampToValueAtTime(.001,now+.14);
+   noise.connect(hp).connect(ng).connect(audioCtx.destination);
+   noise.start(now);
+
+   // 2) low rifle punch
+   const osc=audioCtx.createOscillator();
+   const og=audioCtx.createGain();
+   osc.type='sine';
+   osc.frequency.setValueAtTime(165,now);
+   osc.frequency.exponentialRampToValueAtTime(58,now+.11);
+   og.gain.setValueAtTime(.34,now);
+   og.gain.exponentialRampToValueAtTime(.001,now+.13);
+   osc.connect(og).connect(audioCtx.destination);
+   osc.start(now);osc.stop(now+.14);
+
+   // 3) metallic snap
+   const snap=audioCtx.createOscillator();
+   const sg=audioCtx.createGain();
+   snap.type='square';
+   snap.frequency.setValueAtTime(1850,now);
+   snap.frequency.exponentialRampToValueAtTime(720,now+.035);
+   sg.gain.setValueAtTime(.08,now);
+   sg.gain.exponentialRampToValueAtTime(.001,now+.045);
+   snap.connect(sg).connect(audioCtx.destination);
+   snap.start(now);snap.stop(now+.05);
+
+   // 4) tiny delayed tail for impact/reverb feel
+   const tail=audioCtx.createOscillator();
+   const tg=audioCtx.createGain();
+   tail.type='triangle';tail.frequency.value=92;
+   tg.gain.setValueAtTime(.001,now+.045);
+   tg.gain.linearRampToValueAtTime(.11,now+.055);
+   tg.gain.exponentialRampToValueAtTime(.001,now+.24);
+   tail.connect(tg).connect(audioCtx.destination);
+   tail.start(now+.045);tail.stop(now+.25);
+ }catch(err){console.warn('sniperGunshot error',err)}
 }
 function playVoice(kind){
  if(!soundOn)return;ensureAudio();
@@ -701,7 +760,7 @@ function updateSniperPassive(p,dt){
    sniperShots.push({owner:p,sx:p.scanX,sy:p.scanY,x:e.x,y:e.y,life:.30,maxLife:.30});
    cutin(`${p.slot}P · ${shownName(p)}`,'LOCK ON','확정 저격','#ff6262');
    ring(e.x,e.y,82,.30,3,'#ff5a5a');burst(e.x,e.y,18,'#ff7575',1.1);flash=.08;shake=7;
-   beep('hit');damage(e,shotDamage,p,'확정 저격');
+   sniperGunshot();damage(e,shotDamage,p,'확정 저격');
  }else if(!overlap){p.scanLatched=false}
 }
 
@@ -946,6 +1005,7 @@ function teamSniper(p,dt){
    p.scanLatched=true;p.scanShotCd=4.5;p.scopeFlash=.28;
    const t=hits.sort((a,b)=>a.hp-b.hp)[0];
    sniperShots.push({owner:p,sx:p.scanX,sy:p.scanY,x:t.x,y:t.y,life:.28,maxLife:.28});
+   sniperGunshot();
    teamDamage(t,24+(p.clutchActive>0?6:0),p,'확정 저격');
  }
  if(!hits.length)p.scanLatched=false;
