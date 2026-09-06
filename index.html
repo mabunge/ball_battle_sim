@@ -170,7 +170,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.1.1 — ULT AUDIO HOTFIX</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.1.2 — LIMIT RUSH BUFF</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -248,7 +248,7 @@ const chars=[
  clutch:'CLUTCH: 오만 스택 폭발. 공격 +5, M.O.T 이명 박탈 시간이 강화.'},
 {id:'awakened',name:'각성 황성배',short:'각성 황성배',hp:310,atk:17,speed:247,skillCd:5.5,ultCd:17,ultPower:96,skillName:'폭주',ultName:'완전각성',quote:'“아직 안 끝났다.”',
  skill:'4초간 평타 +10, 이동속도 +22%. 체력이 낮을수록 기본 공격 보너스.',
- ult:'240px 충격파와 5초 완전 폭주. 50/25/10% 체력에서 단계 각성.',
+ ult:'240px 충격파와 5초 완전 폭주. HP 20% 이하에서는 0.6초 정지 후 초고속 추적 돌진. 적중한 상대는 1.6초 넉백 상태가 되며 벽에 튕길 때마다 추가 피해를 받는다.',
  clutch:'CLUTCH: 즉시 각성 단계를 한 단계 끌어올리고 폭주 보너스 강화.'},
 {id:'jaeyoung',name:'천명관음 재영',short:'천명관음 재영',hp:295,atk:15,speed:246,skillCd:5.2,ultCd:16,ultPower:91,skillName:'천수연격',ultName:'천명관음',quote:'“네 공격은 이미 천 번 보았다.”',
  skill:'진행 방향 3연 손날. PERFECT 시 5연 손날.',
@@ -582,7 +582,7 @@ function makePlayer(c,slot){
   skillLeft:0,ultLeft:c.ultCd,shield:0,defReduce:0,defTime:0,buffAtk:0,buffSpeed:0,buffTime:0,
   attackDebuff:0,attackDebuffTime:0,hitFlash:0,counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
   clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,sizeTime:0,
-  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false
+  bounceCombo:0,lastBounceAt:-99,postUltDamage:0,postUltTimer:0,awakenStage:0,nearMisses:0,hyungStack:0,lastKillByUlt:false,skillLockedFlash:0,alive:true,aiUltReadyAge:0,scanX:slot===1?W()*.22:W()*.78,scanY:H()*.36,scanVX:slot===1?360:-360,scanVY:slot===1?245:-225,scanR:30,scanShotCd:0,scanLatched:false,scopeFlash:0,gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0
  }
 }
 function resetBattle(){
@@ -598,7 +598,7 @@ function updateSide(){
  $('p1SideInfo').innerHTML=skillHtml(p1,'Q');$('p2SideInfo').innerHTML=skillHtml(p2,'O');
 }
 function statusTags(p){
- const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='awakened'&&p.awakenRushWindup>0)a.push('RUSH CHARGE');if(p.id==='awakened'&&p.awakenRushTime>0)a.push('LIMIT RUSH');if(p.id==='youngwoong')a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
+ const a=[];if(p.bounceCombo>1)a.push(`BOUNCE ×${p.bounceCombo}`);if(p.id==='gwak'&&p.gwakChargeTime>0)a.push(p.gwakChargeHitReady?'CHARGE LOCK':'CHASE');if(p.id==='awakened'&&p.awakenRushWindup>0)a.push('RUSH CHARGE');if(p.id==='awakened'&&p.awakenRushTime>0)a.push('LIMIT RUSH');if(p.knockbackTime>0)a.push(`KNOCKBACK ${p.knockbackTime.toFixed(1)}s`);if(p.id==='youngwoong')a.push(p.scanShotCd<=0?'SNIPER READY':`RELOAD ${p.scanShotCd.toFixed(1)}s`);if(p.id==='isaac'&&p.hyungStack>0)a.push(`형이야 ×${p.hyungStack}`);if(p.shield>0)a.push(`SHIELD ${Math.ceil(p.shield)}`);if(p.clutchActive>0)a.push('CLUTCH');if(p.titleBroken)a.push('이명 박탈');
  if(p.awakenStage>0)a.push(`각성 ${p.awakenStage}단계`);if(p.buffTime>0)a.push('BUFF');if(p.defTime>0)a.push('DEF');
  return a.map(x=>`<span class="status-tag">${x}</span>`).join('')
 }
@@ -763,7 +763,15 @@ function fireProjectile(owner,angle,speed,damage,type='normal',size=8,life=2.5,o
 function spawnPizza(n=1){for(let i=0;i<n;i++)pizzas.push({x:rand(70,W()-70),y:rand(120,H()-70),r:12,life:14})}
 
 function bounce(p,side){
- beep('wall');const now=gameTime;if(now-p.lastBounceAt<=3)p.bounceCombo=Math.min(7,p.bounceCombo+1);else p.bounceCombo=1;p.lastBounceAt=now;
+ beep('wall');
+ if(p.knockbackTime>0&&p.knockbackWallDamage>0&&p.knockbackWallCd<=0){
+   const src=p.knockbackSource||enemy(p);
+   damage(p,p.knockbackWallDamage,src,'넉백 벽 충돌');
+   p.knockbackWallCd=.10;
+   txt(p.x,p.y-52,'WALL DAMAGE!',true,'#ffc59b');
+   shake=Math.max(shake,11);
+ }
+ const now=gameTime;if(now-p.lastBounceAt<=3)p.bounceCombo=Math.min(7,p.bounceCombo+1);else p.bounceCombo=1;p.lastBounceAt=now;
  if(p.bounceCombo>=3){txt(p.x,p.y-40,`BOUNCE ×${p.bounceCombo}`,true,'#bceaff')}
  const type=walls[side];
  if(type==='accel'){p.wallBoost=Math.max(p.wallBoost||0,.15);p.wallBoostTime=3;txt(p.x,p.y,'SPEED',false,'#61d4ff')}
@@ -804,6 +812,7 @@ function tickPlayer(p,dt){
  if(p.wallPulse>0&&p.wallPulse<900)p.wallPulse=Math.max(0,p.wallPulse-dt);
  if(p.postUltTimer>0){p.postUltTimer-=dt;if(p.postUltTimer<=0&&p.postUltDamage>0){const d=p.postUltDamage;p.postUltDamage=0;damage(p,d,p,'각성 반동')}}
  stagedAwaken(p);
+ if(updateKnockbackMotion(p,dt,false))return;
  if(updateAwakenedRush(p,dt))return;
  let accel=Math.min(2.15,1+gameTime*.0065),eventSpeed=currentEvent&&currentEvent.id==='overspeed'?1.2:1;
  let stageSpeed=p.id==='awakened'&&!p.titleBroken?1+p.awakenStage*.06:1;
@@ -817,12 +826,8 @@ function collide(){
  if(d<min){
   const nx=dx/d,ny=dy/d,ov=min-d;p1.x-=nx*ov/2;p1.y-=ny*ov/2;p2.x+=nx*ov/2;p2.y+=ny*ov/2;
   const a1=p1.vx*nx+p1.vy*ny,a2=p2.vx*nx+p2.vy*ny;p1.vx+=(a2-a1)*nx;p1.vy+=(a2-a1)*ny;p2.vx+=(a1-a2)*nx;p2.vy+=(a1-a2)*ny;
-  if(p1.id==='awakened'&&p1.awakenRushTime>0&&p1.awakenRushHitReady&&p2.alive){
-    damage(p2,46,p1,'한계 돌진 궁극기');p1.awakenRushHitReady=false;p1.awakenRushTime=0;ring(p2.x,p2.y,115,.34,6,'#ff7048');burst(p2.x,p2.y,30,'#ff7048',1.35);shake=18;
-  }
-  if(p2.id==='awakened'&&p2.awakenRushTime>0&&p2.awakenRushHitReady&&p1.alive){
-    damage(p1,46,p2,'한계 돌진 궁극기');p2.awakenRushHitReady=false;p2.awakenRushTime=0;ring(p1.x,p1.y,115,.34,6,'#ff7048');burst(p1.x,p1.y,30,'#ff7048',1.35);shake=18;
-  }
+  if(p1.id==='awakened'&&p1.awakenRushTime>0&&p1.awakenRushHitReady&&p2.alive)resolveAwakenedRushHit(p1,p2,false);
+  if(p2.id==='awakened'&&p2.awakenRushTime>0&&p2.awakenRushHitReady&&p1.alive)resolveAwakenedRushHit(p2,p1,false);
   if(collisionCd<=0){
    const v1=Math.hypot(p1.vx,p1.vy),v2=Math.hypot(p2.vx,p2.vy),dot=(p1.vx*p2.vx+p1.vy*p2.vy)/(v1*v2||1),headOn=dot<-.72;
    let eventMul=currentEvent&&currentEvent.id==='lawless'?1.35:1;
@@ -853,6 +858,52 @@ function collide(){
 
 
 
+
+function segmentCircleHit(x1,y1,x2,y2,cx,cy,r){
+ const dx=x2-x1,dy=y2-y1,len2=dx*dx+dy*dy||1;
+ const t=clamp(((cx-x1)*dx+(cy-y1)*dy)/len2,0,1);
+ const px=x1+dx*t,py=y1+dy*t;
+ return Math.hypot(px-cx,py-cy)<=r;
+}
+function applyAwakenedKnockback(target,source,isTeam=false){
+ if(!target||target.alive===false)return;
+ const dx=target.x-source.x,dy=target.y-source.y;
+ [target.vx,target.vy]=norm(dx,dy,isTeam?1220:1280);
+ target.knockbackTime=1.6;
+ target.knockbackWallDamage=isTeam?10:12;
+ target.knockbackSource=source;
+ target.knockbackWallCd=0;
+ txt(target.x,target.y-48,'KNOCKBACK!',true,'#ffd5b3');
+ ring(target.x,target.y,90,.28,4,'#ff9b68');
+}
+function resolveAwakenedRushHit(attacker,target,isTeam=false){
+ if(!attacker||!target||!attacker.awakenRushHitReady||target.alive===false)return false;
+ if(isTeam)teamDamage(target,42,attacker,'한계 돌진 궁극기');
+ else damage(target,46,attacker,'한계 돌진 궁극기');
+ attacker.awakenRushHitReady=false;
+ attacker.awakenRushTime=0;
+ ring(target.x,target.y,isTeam?108:118,.34,6,'#ff7048');
+ burst(target.x,target.y,isTeam?26:32,'#ff7048',1.4);
+ shake=Math.max(shake,isTeam?17:20);
+ if(target.alive!==false)applyAwakenedKnockback(target,attacker,isTeam);
+ return true;
+}
+function updateKnockbackMotion(p,dt,isTeam=false){
+ if(!p||p.alive===false||p.knockbackTime<=0)return false;
+ p.knockbackTime=Math.max(0,p.knockbackTime-dt);
+ p.knockbackWallCd=Math.max(0,(p.knockbackWallCd||0)-dt);
+ const current=Math.hypot(p.vx,p.vy);
+ const speed=Math.max(isTeam?720:760,current*Math.pow(.986,dt*60));
+ [p.vx,p.vy]=norm(p.vx,p.vy,speed);
+ p.x+=p.vx*dt;p.y+=p.vy*dt;
+ if(isTeam)teamBounds(p);else bounds(p);
+ trails.push({x:p.x,y:p.y,r:p.r*.9,life:.16,color:'#ffcf9e'});
+ if(p.knockbackTime<=0){
+   p.knockbackWallDamage=0;p.knockbackSource=null;p.knockbackWallCd=0;
+ }
+ return true;
+}
+
 function updateAwakenedRush(p,dt){
  if(!p||p.alive===false||p.id!=='awakened')return false;
  if(p.awakenRushWindup>0){
@@ -860,20 +911,29 @@ function updateAwakenedRush(p,dt){
    p.vx=0;p.vy=0;
    if(p.awakenRushWindup<=0){
      const e=enemy(p);
-     [p.vx,p.vy]=norm(e.x-p.x,e.y-p.y,790);
-     p.awakenRushTime=1.15;
-     ring(p.x,p.y,125,.26,5,'#ff7048');
-     burst(p.x,p.y,28,'#ff8a54',1.25);
-     txt(p.x,p.y-52,'LIMIT RUSH!',true,'#fff0b0');
-     shake=15;flash=.10;
+     [p.vx,p.vy]=norm(e.x-p.x,e.y-p.y,2600);
+     p.awakenRushTime=1.35;
+     ring(p.x,p.y,135,.24,6,'#ff7048');
+     burst(p.x,p.y,34,'#ff8a54',1.35);
+     txt(p.x,p.y-52,'LIMIT RUSH!!',true,'#fff0b0');
+     shake=17;flash=.12;
    }
    return true;
  }
  if(p.awakenRushTime>0){
    p.awakenRushTime=Math.max(0,p.awakenRushTime-dt);
-   [p.vx,p.vy]=norm(p.vx,p.vy,790);
-   p.x+=p.vx*dt;p.y+=p.vy*dt;bounds(p);
-   trails.push({x:p.x,y:p.y,r:p.r*1.18,life:.22,color:'#ff6d45'});
+   const e=enemy(p);
+   // Re-aim every frame so the 20% ultimate behaves as a near-guaranteed hit.
+   [p.vx,p.vy]=norm(e.x-p.x,e.y-p.y,2600);
+   const ox=p.x,oy=p.y,nx=p.x+p.vx*dt,ny=p.y+p.vy*dt;
+   if(segmentCircleHit(ox,oy,nx,ny,e.x,e.y,p.r+e.r+5)){
+     p.x=nx;p.y=ny;
+     resolveAwakenedRushHit(p,e,false);
+     return true;
+   }
+   p.x=nx;p.y=ny;bounds(p);
+   trails.push({x:p.x,y:p.y,r:p.r*1.35,life:.24,color:'#ff4f2f'});
+   trails.push({x:p.x-p.vx*.012,y:p.y-p.vy*.012,r:p.r*.9,life:.18,color:'#ffd06b'});
    if(p.awakenRushTime<=0)p.awakenRushHitReady=false;
    return true;
  }
@@ -887,11 +947,11 @@ function updateTeamAwakenedRush(p,dt){
    if(p.awakenRushWindup<=0){
      const t=teamTarget(p);
      if(t){
-       [p.vx,p.vy]=norm(t.x-p.x,t.y-p.y,745);
-       p.awakenRushTime=1.15;
-       ring(p.x,p.y,110,.24,5,'#ff7048');
-       burst(p.x,p.y,24,'#ff8a54',1.15);
-       txt(p.x,p.y-46,'LIMIT RUSH!',true,'#fff0b0');
+       [p.vx,p.vy]=norm(t.x-p.x,t.y-p.y,2350);
+       p.awakenRushTime=1.35;
+       ring(p.x,p.y,120,.24,6,'#ff7048');
+       burst(p.x,p.y,28,'#ff8a54',1.25);
+       txt(p.x,p.y-46,'LIMIT RUSH!!',true,'#fff0b0');
      }else{
        p.awakenRushHitReady=false;
      }
@@ -900,9 +960,18 @@ function updateTeamAwakenedRush(p,dt){
  }
  if(p.awakenRushTime>0){
    p.awakenRushTime=Math.max(0,p.awakenRushTime-dt);
-   [p.vx,p.vy]=norm(p.vx,p.vy,745);
-   p.x+=p.vx*dt;p.y+=p.vy*dt;teamBounds(p);
-   trails.push({x:p.x,y:p.y,r:p.r*1.12,life:.20,color:p.team==='A'?'#ff825e':'#ff5c48'});
+   const t=teamTarget(p);
+   if(!t){p.awakenRushHitReady=false;p.awakenRushTime=0;return true}
+   [p.vx,p.vy]=norm(t.x-p.x,t.y-p.y,2350);
+   const ox=p.x,oy=p.y,nx=p.x+p.vx*dt,ny=p.y+p.vy*dt;
+   if(segmentCircleHit(ox,oy,nx,ny,t.x,t.y,p.r+t.r+5)){
+     p.x=nx;p.y=ny;
+     resolveAwakenedRushHit(p,t,true);
+     return true;
+   }
+   p.x=nx;p.y=ny;teamBounds(p);
+   trails.push({x:p.x,y:p.y,r:p.r*1.28,life:.22,color:p.team==='A'?'#ff825e':'#ff5c48'});
+   trails.push({x:p.x-p.vx*.012,y:p.y-p.vy*.012,r:p.r*.85,life:.17,color:'#ffd06b'});
    if(p.awakenRushTime<=0)p.awakenRushHitReady=false;
    return true;
  }
@@ -1056,7 +1125,7 @@ function makeTeamPlayer(c,team,index,n){
    counter:false,wallPulse:0,wallPulseDamage:0,wallPulseRadius:0,wallPulseCharges:0,
    sizeTime:0,clutchDesc:c.clutch,clutch:0,clutchActive:0,clutchUsed:false,titleTime:0,tempTitle:'',titleBroken:false,
    scanX:left?W()*.24:W()*.76,scanY:y*.72+H()*.12,scanVX:left?345:-345,scanVY:(index%2===0?225:-235),scanR:27,scanShotCd:0,scanLatched:false,scopeFlash:0,
-   gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,awakenStage:0,postUltDamage:0,postUltTimer:0
+   gwakChargeTime:0,gwakChargeHitReady:false,awakenRushWindup:0,awakenRushTime:0,awakenRushHitReady:false,knockbackTime:0,knockbackWallDamage:0,knockbackSource:null,knockbackWallCd:0,awakenStage:0,postUltDamage:0,postUltTimer:0
  };
 }
 function teamEnemies(p){return teamPlayers.filter(x=>x.alive&&x.team!==p.team)}
@@ -1172,6 +1241,13 @@ function teamSpawnTerrain(owner,count=3,duration=12){
 }
 function teamBounce(p,side){
  beep('wall');
+ if(p.knockbackTime>0&&p.knockbackWallDamage>0&&p.knockbackWallCd<=0){
+   const src=p.knockbackSource;
+   if(src)teamDamage(p,p.knockbackWallDamage,src,'넉백 벽 충돌');
+   p.knockbackWallCd=.10;
+   txt(p.x,p.y-46,'WALL DAMAGE!',true,'#ffc59b');
+   shake=Math.max(shake,10);
+ }
  const type=walls[side];
  if(type==='accel'){p.wallBoost=.13;p.wallBoostTime=2.5}
  if(type==='twist'){const r=(Math.random()<.5?-1:1)*.45,c=Math.cos(r),s=Math.sin(r),vx=p.vx*c-p.vy*s,vy=p.vx*s+p.vy*c;p.vx=vx;p.vy=vy}
@@ -1201,6 +1277,7 @@ function teamTickPlayer(p,dt){
  if(p.wallPulse>0&&p.wallPulse<900)p.wallPulse=Math.max(0,p.wallPulse-dt);
  if(p.id==='awakened'){const rr=p.hp/p.maxHp;p.awakenStage=rr<=.1?3:rr<=.25?2:rr<=.5?1:0}
  const t=teamTarget(p);
+ if(updateKnockbackMotion(p,dt,true))return;
  if(updateTeamAwakenedRush(p,dt))return;
  if(p.id==='gwak'&&p.gwakChargeTime>0&&t){
    p.gwakChargeTime-=dt;let cur=Math.atan2(p.vy,p.vx),tar=Math.atan2(t.y-p.y,t.x-p.x),diff=tar-cur;
@@ -1248,12 +1325,8 @@ function teamCollisions(){
    const a=alive[i],b=alive[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.001,min=a.r+b.r;
    if(d>=min)continue;const nx=dx/d,ny=dy/d,ov=min-d;a.x-=nx*ov/2;a.y-=ny*ov/2;b.x+=nx*ov/2;b.y+=ny*ov/2;
    const av=a.vx*nx+a.vy*ny,bv=b.vx*nx+b.vy*ny;a.vx+=(bv-av)*nx;a.vy+=(bv-av)*ny;b.vx+=(av-bv)*nx;b.vy+=(av-bv)*ny;
-   if(a.team!==b.team&&a.id==='awakened'&&a.awakenRushTime>0&&a.awakenRushHitReady&&b.alive){
-     teamDamage(b,42,a,'한계 돌진 궁극기');a.awakenRushHitReady=false;a.awakenRushTime=0;ring(b.x,b.y,105,.32,6,'#ff7048');shake=16;
-   }
-   if(a.team!==b.team&&b.id==='awakened'&&b.awakenRushTime>0&&b.awakenRushHitReady&&a.alive){
-     teamDamage(a,42,b,'한계 돌진 궁극기');b.awakenRushHitReady=false;b.awakenRushTime=0;ring(a.x,a.y,105,.32,6,'#ff7048');shake=16;
-   }
+   if(a.team!==b.team&&a.id==='awakened'&&a.awakenRushTime>0&&a.awakenRushHitReady&&b.alive)resolveAwakenedRushHit(a,b,true);
+   if(a.team!==b.team&&b.id==='awakened'&&b.awakenRushTime>0&&b.awakenRushHitReady&&a.alive)resolveAwakenedRushHit(b,a,true);
    if(a.team!==b.team&&a.hitCd<=0&&b.hitCd<=0){
      let da=a.atk+(a.buffAtk||0)+(a.id==='awakened'?a.awakenStage*2:0),db=b.atk+(b.buffAtk||0)+(b.id==='awakened'?b.awakenStage*2:0);
      if(a.attackDebuffTime>0)da*=1-a.attackDebuff;if(b.attackDebuffTime>0)db*=1-b.attackDebuff;
