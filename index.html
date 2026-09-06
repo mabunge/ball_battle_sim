@@ -173,7 +173,7 @@ canvas{display:block;width:100%;height:670px}
 
 <div class="app">
 <header>
-  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.2.2 — PHANTOM RESTORE</div></div>
+  <div><h1>만마보이즈 배틀</h1><div class="subtitle">Ver. 1.2.3 — ISAAC NERF</div></div>
   <div class="controls">
     <button id="soundToggle">🔊 사운드 ON</button><button id="mobileMode">📱 모바일 모드 OFF</button><button id="simMode">🤖 시뮬레이션 OFF</button><button id="reselect">캐릭터 변경</button><button id="reset">리셋</button><button class="primary" id="start">전투 시작</button>
   </div>
@@ -258,7 +258,7 @@ const chars=[
  ult:'12방향 손날 + 3초 피해 감소. 벽 반사 시 남긴 관음 잔상이 지연 공격.',
  clutch:'CLUTCH: 관음 잔상 피해 강화 및 방어 보너스.'},
 {id:'isaac',name:'대 이 삭',short:'대 이 삭',hp:300,atk:16,speed:256,skillCd:5.0,ultCd:15,ultPower:94,skillName:'알잘딱 카운터',ultName:'대 이 삭',quote:'“어, 형이야.”',
- skill:'보호막 20 + 다음 충돌 추가 18 피해. PERFECT 시 보호막과 카운터 피해 강화.',
+ skill:'보호막 10 + 다음 충돌 추가 18 피해. PERFECT 시 보호막과 카운터 피해 강화.',
  ult:'화면 반대편 순간이동, 190px 폭발. 궁극기 충전 완료 시 도착 지점이 미리 표시되며, 사용 후 잠시 볼이 작아지고 고속화.',
  clutch:'CLUTCH: 형이야 스택. 이동속도 상승, 궁극기 충전 가속, 저체력 궁극기 피해 증가.'},
 {id:'yookyung',name:'피자의 지배자 유경환',short:'피자의 지배자 유경환',hp:305,atk:15,speed:244,skillCd:5.5,ultCd:17,ultPower:88,skillName:'라스트 슬라이스',ultName:'치즈 도미니언',quote:'“마지막 한 조각은 내 거다.”',
@@ -780,7 +780,7 @@ function useSkill(p){
   case 'taeho':p.buffAtk=8*mul;p.buffSpeed=.12*mul;p.buffTime=Math.max(p.buffTime,dur);break;
   case 'awakened':p.buffAtk=10*mul;p.buffSpeed=.22*mul;p.buffTime=Math.max(p.buffTime,dur);break;
   case 'jaeyoung':{const a=Math.atan2(p.vy,p.vx),count=perf?5:3;for(let i=0;i<count;i++){const off=(i-(count-1)/2)*.13;fireProjectile(p,a+off,425,11*mul,'hand',8,2.3)}break}
-  case 'isaac':p.shield+=20*mul;p.counter=perf?'perfect':true;break;
+  case 'isaac':p.shield+=10;p.counter=perf?'perfect':true;break;
   case 'yookyung':fireProjectile(p,Math.atan2(p.vy,p.vx),395,28*mul,'pizza',11,3,12*mul);break;
   case 'gwak':p.defReduce=perf?.45:.35;p.defTime=perf?5:4;break;
   case 'hyojun':p.wallPulse=perf?4.5:3.5;p.wallPulseDamage=perf?24:18;p.wallPulseRadius=perf?170:140;break;
@@ -1406,7 +1406,7 @@ function teamUseSkill(p){
    case 'taeho':p.buffAtk=8;p.buffSpeed=.12;p.buffTime=4;break;
    case 'awakened':p.buffAtk=10;p.buffSpeed=.20;p.buffTime=4;break;
    case 'jaeyoung':[-.16,0,.16].forEach(o=>teamFire(p,ang+o,410,11,'hand'));break;
-   case 'isaac':p.shield+=20;p.counter=true;break;
+   case 'isaac':p.shield+=10;p.counter=true;break;
    case 'yookyung':teamFire(p,ang,385,26,'pizza',2.8,10);break;
    case 'gwak':p.defReduce=.35;p.defTime=4;break;
    case 'hyojun':p.wallPulse=3.5;p.wallPulseDamage=16;p.wallPulseRadius=135;break;
